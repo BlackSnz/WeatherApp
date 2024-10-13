@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">WeatherApp</string>
+    <!-- The main screen strings -->
+    <string name="current_temperature">%1$s°C</string>
+</resources>
