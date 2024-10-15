@@ -2,4 +2,31 @@
     <string name="app_name">WeatherApp</string>
     <!-- The main screen strings -->
     <string name="current_temperature">%1$s°C</string>
+    <string name="weather_icon">Weather icon</string>
+    <string name="current_humidity">%1$s%%</string>
+    <string name="current_wind">%1$s m/s</string>
+    <string name="current_pressure">%1$s hPa</string>
+
+    <!-- Settings string -->
+    <!-- Массив единиц температуры -->
+    <string-array name="temperature_units">
+        <item>Celsius</item>
+        <item>Fahrenheit</item>
+    </string-array>
+
+    <string-array name="temperature_values">
+        <item>Celsius</item>
+        <item>Fahrenheit</item>
+    </string-array>
+
+    <!-- Массив единиц давления -->
+    <string-array name="pressure_units">
+        <item>hPa</item>
+        <item>mmHg</item>
+    </string-array>
+
+    <string-array name="pressure_values">
+        <item>hPa</item>
+        <item>mmHg</item>
+    </string-array>
 </resources>

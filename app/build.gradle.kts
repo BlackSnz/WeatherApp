@@ -53,8 +53,13 @@ dependencies {
     implementation(libs.converter.gson)
     // Glide libraries
     implementation(libs.github.glide)
-    androidTestImplementation(libs.androidx.core.testing)
-    annotationProcessor(libs.glide.compiler)
+    // Location form Google Play Services
+    implementation(libs.google.play.services.location)
+    implementation("androidx.preference:preference:1.2.1")
+    implementation("androidx.preference:preference-ktx:1.2.1")
+
+
+
 
     testImplementation(libs.junit)
     testImplementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.test2)
@@ -62,6 +67,8 @@ dependencies {
     testImplementation(libs.androidx.core.testing)
 
     androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.core.testing)
+    annotationProcessor(libs.glide.compiler)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.test2)
     androidTestImplementation(libs.org.mockito.mockito.core2)
