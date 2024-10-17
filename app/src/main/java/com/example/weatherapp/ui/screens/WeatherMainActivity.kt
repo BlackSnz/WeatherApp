@@ -1,8 +1,11 @@
 package com.example.weatherapp
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
+import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -10,7 +13,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
+import androidx.preference.PreferenceManager
 import com.example.weatherapp.ui.LocationViewModel
+import com.example.weatherapp.ui.WeatherUpdateUi
 import com.example.weatherapp.ui.WeatherViewModel
 import com.example.weatherapp.ui.screens.SettingsActivity
 
@@ -21,22 +26,17 @@ class WeatherMainActivity : AppCompatActivity() {
     private val weatherViewModel: WeatherViewModel by viewModels()
     private val locationViewModel: LocationViewModel by viewModels()
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.weather_main)
 
-        // Get last known location from the Google Play Service
-        locationViewModel.getLastKnownLocation(this, LOCATION_PERMISSION_REQUEST_CODE)
-        locationViewModel.currentLocation.observe(this, Observer { location ->
-            weatherViewModel.getWeatherData(
-                locationViewModel.currentLocation.value!!.latitude.toBigDecimal()
-                    .setScale(3, java.math.RoundingMode.HALF_EVEN).toDouble(),
-                locationViewModel.currentLocation.value!!.longitude.toBigDecimal()
-                    .setScale(3, java.math.RoundingMode.HALF_EVEN).toDouble(),
-                this
-            )
-        })
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+
+
+        // Values for the current location
+        val cityText = findViewById<TextView>(R.id.tvCity)
 
         // Values for the current weather
         val weatherTemperatureText = findViewById<TextView>(R.id.tvTemperature)
@@ -45,9 +45,6 @@ class WeatherMainActivity : AppCompatActivity() {
         val windText = findViewById<TextView>(R.id.tvWindInfo)
         val pressureText = findViewById<TextView>(R.id.tvPressureInfo)
 
-        // Values for the current location
-        val cityText = findViewById<TextView>(R.id.tvCity)
-
         // Values for the settings
         val settingsIcon = findViewById<ImageView>(R.id.ivSettings)
         settingsIcon.setOnClickListener {
@@ -55,38 +52,79 @@ class WeatherMainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-
-        // Observers for the weatherViewModel
-        weatherViewModel.weatherData.observe(this, Observer {
-            weatherViewModel.updateWeatherUi(this)
-        })
-
-        weatherViewModel.weatherUi.observe(this, Observer { weather ->
-            weather?.let {
-                weatherTemperatureText.text = this.getString(
-                    R.string.current_temperature,
-                    it.temperature
-                )
-                weatherIcon.setImageDrawable(it.icon)
-                humidityText.text = this.getString(R.string.current_humidity, it.humidity)
-                windText.text = this.getString(R.string.current_wind, it.wind)
-                pressureText.text = this.getString(R.string.current_pressure, it.pressure)
-
-            }
-        })
-
-        weatherViewModel.currentWeatherIcon.observe(this, Observer { drawable ->
-            drawable?.let {
-                weatherIcon.setImageDrawable(it)
-            }
-        })
+        // Get current location
+        locationViewModel.getCurrentLocation(this)
 
         // Observers for the locationViewModel
-        locationViewModel.currentLocation.observe(this, Observer { location ->
+        locationViewModel.currentLocation.observe(this) { location ->
+            weatherViewModel.getWeatherData(
+                locationViewModel.currentLocation.value!!.latitude,
+                locationViewModel.currentLocation.value!!.longitude,
+                this
+            )
+
             location?.let {
                 cityText.text = it.city
             }
-        })
+        }
+
+        // Observers for the weatherViewModel
+
+        weatherViewModel.weatherUpdateUi.observe(this) {
+            when(weatherViewModel.weatherUpdateUi.value) {
+                WeatherUpdateUi.Loading -> {
+                }
+                WeatherUpdateUi.Success -> {
+                    weatherViewModel.weatherUi.value.let {
+                        weatherIcon.setImageDrawable(it?.icon)
+                        humidityText.text = this.getString(R.string.current_humidity, it?.humidity)
+                        windText.text = this.getString(R.string.current_wind, it?.wind)
+                        // Checking the temperature unit and set text for the temperature
+                        when (sharedPreferences.getString("temperature_unit", "Celsius")) {
+                            "Celsius" -> {
+                                weatherTemperatureText.text =
+                                    this.getString(R.string.current_temperature_celcius, it?.temperature)
+                            }
+
+                            "Fahrenheit" -> {
+                                weatherTemperatureText.text =
+                                    this.getString(R.string.current_temperature_fahrenheit, it?.temperature)
+                            }
+                        }
+                        when (sharedPreferences.getString("pressure_unit", "mmHg")) {
+                            "hPa" -> {
+                                pressureText.text =
+                                    this.getString(R.string.current_pressure_hpa, it?.pressure)
+                            }
+
+                            "mmHg" -> {
+                                pressureText.text =
+                                    this.getString(R.string.current_pressure_mmHg, it?.pressure)
+
+                            }
+                        }
+                    }
+                }
+                else -> {
+
+                }
+            }
+        }
+
+        weatherViewModel.currentWeatherIcon.observe(this) { drawable ->
+            drawable?.let {
+                weatherIcon.setImageDrawable(it)
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        weatherViewModel.updateWeatherUi(this)
+    }
+
+    override fun onPause() {
+        super.onPause()
 
     }
 

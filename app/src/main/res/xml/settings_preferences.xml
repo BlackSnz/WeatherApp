@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- Категория настроек для системы измерения -->
+    <PreferenceCategory
+        android:key="measurement_system_category"
+        android:title="Measurement System">
+
+        <!-- Настройка выбора единицы температуры -->
+        <ListPreference
+            android:defaultValue="Celsius"
+            android:dialogTitle="Temperature Unit"
+            android:entries="@array/temperature_units"
+            android:entryValues="@array/temperature_values"
+            android:key="temperature_unit"
+            android:summary="Select the unit for temperature"
+            android:title="Temperature Unit"
+            app:useSimpleSummaryProvider="true" />
+
+        <!-- Настройка выбора единицы давления -->
+        <ListPreference
+            android:defaultValue="hPa"
+            android:dialogTitle="Pressure Unit"
+            android:entries="@array/pressure_units"
+            android:entryValues="@array/pressure_values"
+            android:key="pressure_unit"
+            android:summary="Select the unit for pressure"
+            android:title="Pressure Unit"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+</PreferenceScreen>

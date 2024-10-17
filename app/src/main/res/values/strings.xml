@@ -1,11 +1,13 @@
 <resources>
     <string name="app_name">WeatherApp</string>
     <!-- The main screen strings -->
-    <string name="current_temperature">%1$s°C</string>
+    <string name="current_temperature_celcius">%1$s°C</string>
+    <string name="current_temperature_fahrenheit">%1$s°F</string>
     <string name="weather_icon">Weather icon</string>
     <string name="current_humidity">%1$s%%</string>
     <string name="current_wind">%1$s m/s</string>
-    <string name="current_pressure">%1$s hPa</string>
+    <string name="current_pressure_hpa">%1$s hPa</string>
+    <string name="current_pressure_mmHg">%1$s mmHg</string>
 
     <!-- Settings string -->
     <!-- Массив единиц температуры -->
