@@ -7,16 +7,20 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.preference.PreferenceManager
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.example.weatherapp.R
-import com.example.weatherapp.data.weather.WeatherSettings
+import com.example.weatherapp.WeatherApplication
+import com.example.weatherapp.data.weather.WeatherDataRepository
 import com.example.weatherapp.data.weather.WeatherResponse
 import com.example.weatherapp.data.weather.WeatherUi
-import com.example.weatherapp.network.WeatherApi
 import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
@@ -32,13 +36,7 @@ sealed interface WeatherUpdateUi {
     object Loading : WeatherUpdateUi
 }
 
-sealed interface WeatherDetailsStatus {
-    object Red : WeatherDetailsStatus
-    object Yellow : WeatherDetailsStatus
-    object Green : WeatherDetailsStatus
-}
-
-class WeatherViewModel : ViewModel() {
+class WeatherViewModel(private val weatherDataRepository: WeatherDataRepository) : ViewModel() {
 
     var weatherUpdateUi = MutableLiveData<WeatherUpdateUi>(WeatherUpdateUi.Loading)
         private set
@@ -86,7 +84,7 @@ class WeatherViewModel : ViewModel() {
     // @param appid - your api key in the OpenWeatherApi, which as default is const val in WeatherApiService
     fun getWeatherData(latitude: Double, longitude: Double, context: Context) {
         viewModelScope.launch {
-            val call = WeatherApi.retrofitService.getCurrentWeather(latitude, longitude)
+            val call = weatherDataRepository.getNetworkWeatherData(latitude, longitude)
             call.enqueue(object : Callback<WeatherResponse> {
                 override fun onResponse(
                     call: Call<WeatherResponse>,
@@ -158,4 +156,18 @@ class WeatherViewModel : ViewModel() {
             }
         }
     }
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val application = (this[APPLICATION_KEY] as WeatherApplication)
+                val weatherDataRepository = application.container.weatherDataRepository
+                WeatherViewModel(weatherDataRepository = weatherDataRepository)
+            }
+        }
+    }
+
 }
+
+
+

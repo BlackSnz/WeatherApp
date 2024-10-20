@@ -1,18 +1,15 @@
 package com.example.weatherapp
 
 import android.content.Intent
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
-import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
 import com.example.weatherapp.ui.LocationViewModel
 import com.example.weatherapp.ui.WeatherUpdateUi
@@ -23,7 +20,7 @@ class WeatherMainActivity : AppCompatActivity() {
 
     private val LOCATION_PERMISSION_REQUEST_CODE = 1
 
-    private val weatherViewModel: WeatherViewModel by viewModels()
+    private lateinit var weatherViewModel: WeatherViewModel
     private val locationViewModel: LocationViewModel by viewModels()
 
 
@@ -33,6 +30,8 @@ class WeatherMainActivity : AppCompatActivity() {
         setContentView(R.layout.weather_main)
 
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+
+        weatherViewModel = ViewModelProvider(this, WeatherViewModel.Factory)[WeatherViewModel::class.java]
 
 
         // Values for the current location
