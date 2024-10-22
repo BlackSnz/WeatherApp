@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="WindCardView">
+        <attr name="speedValue" format="string" />
+        <attr name="speedUnit" format="string"/>
+        <attr name="direction" format="string"/>
+    </declare-styleable>
+</resources>

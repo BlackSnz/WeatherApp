@@ -2,6 +2,12 @@
     <string name="app_name">WeatherApp</string>
     <!-- The main screen strings -->
     <string name="current_temperature_celcius">%1$s°C</string>
+    <string name="current_min_temperature_celcuis">Min: %1$s°C</string>
+    <string name="current_max_temperature_celcuis">Max: %1$s°C</string>
+    <string name="current_min_temperature_fahrenheit">Min: %1$s°F</string>
+    <string name="current_max_temperature_fahrenheit">Max: %1$s°F</string>
+    <string name="current_feels_like_tempertature_celcius">Feels like: %1$s°C</string>
+    <string name="current_feels_like_tempertature_fahrenheit">Feels like: %1$s°F</string>
     <string name="current_temperature_fahrenheit">%1$s°F</string>
     <string name="weather_icon">Weather icon</string>
     <string name="current_humidity">%1$s%%</string>

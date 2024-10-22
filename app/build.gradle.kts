@@ -26,6 +26,11 @@ android {
             )
         }
     }
+
+    buildFeatures {
+        viewBinding = true
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
@@ -42,24 +47,38 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+
     // For viewmodel
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.activity.ktx)
+
     // Retrofit
     implementation(libs.retrofit)
+
     // Retrofit with Scalar Converter
     implementation(libs.converter.scalars)
+
     // Retrofit with GSON converter
     implementation(libs.converter.gson)
+
     // Glide libraries
     implementation(libs.github.glide)
+
     // Location form Google Play Services
     implementation(libs.google.play.services.location)
-    implementation("androidx.preference:preference:1.2.1")
-    implementation("androidx.preference:preference-ktx:1.2.1")
 
+    // For preferences
+    implementation(libs.androidx.preference)
+    implementation(libs.androidx.preference.ktx)
 
+    // Navigation for Views/Fragments Integration
+    implementation(libs.navigation.fragment)
+    implementation(libs.androidx.navigation.ui)
+    // Feature module support for Fragments
+    implementation(libs.androidx.navigation.dynamic.features.fragment)
 
+    // Card view
+    implementation(libs.androidx.cardview)
 
     testImplementation(libs.junit)
     testImplementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.test2)
@@ -73,5 +92,8 @@ dependencies {
     androidTestImplementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.test2)
     androidTestImplementation(libs.org.mockito.mockito.core2)
     androidTestImplementation(libs.androidx.core.testing)
+
+    // Testing Navigation
+    androidTestImplementation(libs.androidx.navigation.testing)
 
 }

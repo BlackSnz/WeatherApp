@@ -27,6 +27,7 @@
         <activity android:name=".ui.screens.SettingsActivity"
             android:label="Settings"
             android:parentActivityName=".WeatherMainActivity"
+            android:theme="@style/Theme.AppCompat.Light.DarkActionBar"
             />
     </application>
 

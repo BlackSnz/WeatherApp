@@ -61,27 +61,57 @@ class WeatherViewModel(private val weatherDataRepository: WeatherDataRepository)
             }
             getWeatherIconJob.join()
 
-            val temperature = getCurrentTemperature(context)
+            val currentTemperature = getCurrentTemperature(_weatherData.value?.main?.temp, context)
+            val minCurrentTemperature = getCurrentTemperature(_weatherData.value?.main?.temp_min, context)
+            val maxCurrentTemperature = getCurrentTemperature(_weatherData.value?.main?.temp_max, context)
+            val feelsLikeTemperature = getCurrentTemperature(_weatherData.value?.main?.feels_like, context)
+            val weatherDescription = _weatherData.value?.weather?.get(0)?.description?.replaceFirstChar { it.uppercase()} ?: ""
+            val humidity = _weatherData.value?.main?.humidity.toString()
+            val windSpeed = _weatherData.value?.wind?.speed?.roundToInt().toString()
+            val icon = _currentWeatherIcon.value ?: AppCompatResources.getDrawable(context, R.drawable.weather_icon)!!
+            val windDegrees = getWindDirectionCode() ?: "n"
+            val windGust = _weatherData.value?.wind?.gust.toString()
+
             val pressure = getCurrentPressure(context)
 
             _weatherUi.value = WeatherUi(
-                temperature = temperature,
-                icon = _currentWeatherIcon.value ?: AppCompatResources.getDrawable(
-                    context,
-                    R.drawable.weather_icon
-                )!!,
-                humidity = _weatherData.value?.main?.humidity.toString(),
-                wind = _weatherData.value?.wind?.speed.toString(),
-                pressure = pressure
+                currentTemperature = currentTemperature,
+                minTemperatureToday = minCurrentTemperature,
+                maxTemperatureToday = maxCurrentTemperature,
+                feelsLikeTemperature = feelsLikeTemperature,
+                weatherDescription = weatherDescription,
+                icon = icon,
+                humidity = humidity,
+                windSpeed = windSpeed,
+                pressure = pressure,
+                windDegrees = windDegrees,
+                windGust = windGust
             )
             weatherUpdateUi.value = WeatherUpdateUi.Success
         }
     }
 
-    // Function to receive data from the OpenWeatherApi server with:
-    // @param latitude - as latitude coordinates
-    // @param longitude - as longitude coordinates
-    // @param appid - your api key in the OpenWeatherApi, which as default is const val in WeatherApiService
+    private fun getWindDirectionCode(): String? {
+        val windDegrees = _weatherData.value?.wind?.deg
+        Log.d("WindDirectionCode", "$windDegrees")
+        return when(windDegrees) {
+            in 0..44 -> "n"
+            in 45..89 -> "ne"
+            in 90..134 -> "e"
+            in 135..179 -> "se"
+            in 180..224 -> "s"
+            in 225..269 -> "sw"
+            in 270..314 -> "w"
+            in 315..359 -> "nw"
+            360 -> "n"
+            else -> {
+                Log.d("WeatherViewModel", "Unknown wind direction: $windDegrees")
+                return null
+            }
+        }
+    }
+
+    // Function to receive data from the OpenWeatherApi server
     fun getWeatherData(latitude: Double, longitude: Double, context: Context) {
         viewModelScope.launch {
             val call = weatherDataRepository.getNetworkWeatherData(latitude, longitude)
@@ -134,16 +164,17 @@ class WeatherViewModel(private val weatherDataRepository: WeatherDataRepository)
         }
     }
 
-    private fun getCurrentTemperature(context: Context): String {
+    private fun getCurrentTemperature(temperature: Double?, context: Context): String {
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
-        return when (sharedPreferences.getString("temperature_unit", "Celcius")) {
-            "Celcius" -> _weatherData.value?.main?.temp?.minus(272.15)?.roundToInt().toString()
-            "Fahrenheit" -> _weatherData.value?.main?.temp?.minus(272.15)?.times(9 / 5)?.plus(32)
-                ?.roundToInt().toString()
-
-            else -> {
-                _weatherData.value?.main?.temp?.minus(272.15)?.roundToInt().toString()
+        return when (sharedPreferences.getString("temperature_unit", "Celsius")) {
+            "Celsius" -> {
+                temperature?.minus(272.15)?.roundToInt()?.toString() ?: return "?"
             }
+            "Fahrenheit" -> {
+                temperature?.minus(272.15)?.times(9 / 5)?.plus(32)?.roundToInt()?.toString()
+                    ?: return "?"
+            }
+            else -> throw IllegalArgumentException("Unsupported temperature unit")
         }
     }
 

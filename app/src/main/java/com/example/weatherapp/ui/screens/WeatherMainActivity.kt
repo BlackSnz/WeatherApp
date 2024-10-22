@@ -3,14 +3,13 @@ package com.example.weatherapp
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.widget.ImageView
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
+import com.example.weatherapp.databinding.WeatherMainBinding
 import com.example.weatherapp.ui.LocationViewModel
 import com.example.weatherapp.ui.WeatherUpdateUi
 import com.example.weatherapp.ui.WeatherViewModel
@@ -20,6 +19,7 @@ class WeatherMainActivity : AppCompatActivity() {
 
     private val LOCATION_PERMISSION_REQUEST_CODE = 1
 
+    private lateinit var binding: WeatherMainBinding
     private lateinit var weatherViewModel: WeatherViewModel
     private val locationViewModel: LocationViewModel by viewModels()
 
@@ -27,25 +27,31 @@ class WeatherMainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.weather_main)
-
+        binding = WeatherMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
 
         weatherViewModel = ViewModelProvider(this, WeatherViewModel.Factory)[WeatherViewModel::class.java]
 
-
         // Values for the current location
-        val cityText = findViewById<TextView>(R.id.tvCity)
+        val cityText = binding.tvCity
 
         // Values for the current weather
-        val weatherTemperatureText = findViewById<TextView>(R.id.tvTemperature)
-        val weatherIcon = findViewById<ImageView>(R.id.ivWeatherIcon)
-        val humidityText = findViewById<TextView>(R.id.tvHumidityInfo)
-        val windText = findViewById<TextView>(R.id.tvWindInfo)
-        val pressureText = findViewById<TextView>(R.id.tvPressureInfo)
+        val weatherTemperatureText = binding.tvTemperature
+        val weatherIcon = binding.ivWeatherIcon
+        val humidityText = binding.tvHumidityInfo
+        val windText = binding.tvWindInfo
+        val pressureText = binding.tvPressureInfo
+        val minWeatherTemperatureText = binding.tvMinTemperatureToday
+        val maxWeatherTemperatureText = binding.tvMaxTemperatureToday
+        val feelsLikeTemperatureText = binding.tvFeelsLikeToday
+        val weatherDescriptionText = binding.tvWeatherDescription
+
+        // Values for the wind information
+        val windCard = binding.windCardView
 
         // Values for the settings
-        val settingsIcon = findViewById<ImageView>(R.id.ivSettings)
+        val settingsIcon = binding.ivSettings
         settingsIcon.setOnClickListener {
             val intent = Intent(this, SettingsActivity::class.java)
             startActivity(intent)
@@ -68,7 +74,6 @@ class WeatherMainActivity : AppCompatActivity() {
         }
 
         // Observers for the weatherViewModel
-
         weatherViewModel.weatherUpdateUi.observe(this) {
             when(weatherViewModel.weatherUpdateUi.value) {
                 WeatherUpdateUi.Loading -> {
@@ -77,19 +82,60 @@ class WeatherMainActivity : AppCompatActivity() {
                     weatherViewModel.weatherUi.value.let {
                         weatherIcon.setImageDrawable(it?.icon)
                         humidityText.text = this.getString(R.string.current_humidity, it?.humidity)
-                        windText.text = this.getString(R.string.current_wind, it?.wind)
+                        windText.text = this.getString(R.string.current_wind, it?.windSpeed)
+                        weatherDescriptionText.text = it?.weatherDescription
                         // Checking the temperature unit and set text for the temperature
-                        when (sharedPreferences.getString("temperature_unit", "Celsius")) {
+                        val temperatureUnit =
+                            sharedPreferences.getString("temperature_unit", "Celsius")
+                        when (temperatureUnit) {
                             "Celsius" -> {
                                 weatherTemperatureText.text =
-                                    this.getString(R.string.current_temperature_celcius, it?.temperature)
+                                    this.getString(
+                                        R.string.current_temperature_celcius,
+                                        it?.currentTemperature
+                                    )
+                                minWeatherTemperatureText.text =
+                                    this.getString(
+                                        R.string.current_min_temperature_celcuis,
+                                        it?.minTemperatureToday
+                                    )
+                                maxWeatherTemperatureText.text =
+                                    this.getString(
+                                        R.string.current_max_temperature_celcuis,
+                                        it?.maxTemperatureToday
+                                    )
+                                feelsLikeTemperatureText.text =
+                                    this.getString(
+                                        R.string.current_feels_like_tempertature_celcius, it?.feelsLikeTemperature
+                                    )
                             }
 
                             "Fahrenheit" -> {
                                 weatherTemperatureText.text =
-                                    this.getString(R.string.current_temperature_fahrenheit, it?.temperature)
+                                    this.getString(
+                                        R.string.current_temperature_fahrenheit,
+                                        it?.currentTemperature
+                                    )
+                                minWeatherTemperatureText.text =
+                                    this.getString(
+                                        R.string.current_min_temperature_fahrenheit,
+                                        it?.minTemperatureToday
+                                    )
+                                maxWeatherTemperatureText.text =
+                                    this.getString(
+                                        R.string.current_max_temperature_fahrenheit,
+                                        it?.maxTemperatureToday
+                                    )
+                                feelsLikeTemperatureText.text =
+                                    this.getString(
+                                        R.string.current_feels_like_tempertature_fahrenheit, it?.feelsLikeTemperature
+                                    )
                             }
+
+                            else -> {}
                         }
+
+                        // Checking the pressure unit and set text for the pressure
                         when (sharedPreferences.getString("pressure_unit", "mmHg")) {
                             "hPa" -> {
                                 pressureText.text =
@@ -102,11 +148,11 @@ class WeatherMainActivity : AppCompatActivity() {
 
                             }
                         }
+                        // Update information about wind
+                        windCard.updateWindCard(speed = it?.windSpeed.toString(), "m/s", direction = it?.windDegrees.toString())
                     }
                 }
-                else -> {
-
-                }
+                else -> { }
             }
         }
 
