@@ -9,7 +9,7 @@ private const val API_KEY = "1fac1074796fe012e2203d0cc101aca6"
 
 interface WeatherApiService {
     @GET("data/2.5/weather")
-    fun getCurrentWeather(
+    fun getWeatherData(
         @Query("lat") latitude: Double,
         @Query("lon") longitude: Double,
         @Query("appid") apiKey: String = API_KEY

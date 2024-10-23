@@ -7,21 +7,23 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
 import com.example.weatherapp.databinding.WeatherMainBinding
-import com.example.weatherapp.ui.LocationViewModel
-import com.example.weatherapp.ui.WeatherUpdateUi
-import com.example.weatherapp.ui.WeatherViewModel
+import com.example.weatherapp.ui.vm.LocationState
+import com.example.weatherapp.ui.vm.LocationViewModel
+import com.example.weatherapp.ui.vm.WeatherUpdateUi
+import com.example.weatherapp.ui.vm.WeatherViewModel
 import com.example.weatherapp.ui.screens.SettingsActivity
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class WeatherMainActivity : AppCompatActivity() {
 
     private val LOCATION_PERMISSION_REQUEST_CODE = 1
 
     private lateinit var binding: WeatherMainBinding
-    private lateinit var weatherViewModel: WeatherViewModel
     private val locationViewModel: LocationViewModel by viewModels()
+    private val weatherViewModel: WeatherViewModel by viewModels()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,8 +32,6 @@ class WeatherMainActivity : AppCompatActivity() {
         binding = WeatherMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
-
-        weatherViewModel = ViewModelProvider(this, WeatherViewModel.Factory)[WeatherViewModel::class.java]
 
         // Values for the current location
         val cityText = binding.tvCity
@@ -58,18 +58,21 @@ class WeatherMainActivity : AppCompatActivity() {
         }
 
         // Get current location
-        locationViewModel.getCurrentLocation(this)
+        locationViewModel.getCurrentLocation()
 
         // Observers for the locationViewModel
-        locationViewModel.currentLocation.observe(this) { location ->
-            weatherViewModel.getWeatherData(
-                locationViewModel.currentLocation.value!!.latitude,
-                locationViewModel.currentLocation.value!!.longitude,
-                this
-            )
-
-            location?.let {
-                cityText.text = it.city
+        locationViewModel.locationState.observe(this) { locationState ->
+            when(locationState) {
+                is LocationState.Error -> {
+                    Toast.makeText(this, locationState.message, Toast.LENGTH_SHORT).show()
+                }
+                LocationState.Loading -> {
+                    //TODO("REALISE PROGRESS BAR")
+                }
+                is LocationState.Success -> {
+                    cityText.text = locationState.data.city
+                    weatherViewModel.getWeatherData(locationState.data.latitude, locationState.data.longitude, this)
+                }
             }
         }
 
@@ -181,7 +184,7 @@ class WeatherMainActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                locationViewModel.getCurrentLocation(this)
+                locationViewModel.getCurrentLocation()
             } else {
                 Toast.makeText(
                     this,

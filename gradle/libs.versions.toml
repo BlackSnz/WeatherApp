@@ -7,6 +7,7 @@ converterGson = "2.3.0"
 coreTestingVersion = "2.1.0"
 glideVersion = "4.15.1"
 googlePlayServicesLocation = "21.3.0"
+hiltAndroid = "2.51.1"
 kotlin = "1.9.24"
 coreKtx = "1.10.1"
 junit = "4.13.2"
@@ -38,10 +39,13 @@ converter-scalars = { module = "com.squareup.retrofit2:converter-scalars", versi
 github-glide = { module = "com.github.bumptech.glide:glide", version.ref = "glideVersion" }
 glide-compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "compiler" }
 google-play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "googlePlayServicesLocation" }
+hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
+hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hiltAndroid" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+kotlinx-coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "orgJetbrainsKotlinxKotlinxCoroutinesTest" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }

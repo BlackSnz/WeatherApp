@@ -4,11 +4,11 @@ import com.example.weatherapp.network.WeatherApiService
 import retrofit2.Call
 
 interface WeatherDataRepository {
-    suspend fun getNetworkWeatherData(latitude: Double, longitude: Double): Call<WeatherResponse>
+    fun getWeatherData(latitude: Double, longitude: Double): Call<WeatherResponse>
 }
 
 class NetworkWeatherDataRepository(private val weatherApiService: WeatherApiService) : WeatherDataRepository {
-    override suspend fun getNetworkWeatherData(latitude: Double, longitude: Double): Call<WeatherResponse> {
-        return weatherApiService.getCurrentWeather(latitude, longitude)
+    override fun getWeatherData(latitude: Double, longitude: Double): Call<WeatherResponse> {
+        return weatherApiService.getWeatherData(latitude, longitude)
     }
 }

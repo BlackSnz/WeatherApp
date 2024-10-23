@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id("kotlin-kapt")
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -80,6 +82,13 @@ dependencies {
     // Card view
     implementation(libs.androidx.cardview)
 
+    // Hilt
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
+
+    // Coroutines work with Task
+    implementation(libs.kotlinx.coroutines.play.services)
+
     testImplementation(libs.junit)
     testImplementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.test2)
     testImplementation(libs.org.mockito.mockito.core2)
@@ -96,4 +105,10 @@ dependencies {
     // Testing Navigation
     androidTestImplementation(libs.androidx.navigation.testing)
 
+
 }
+
+kapt {
+    correctErrorTypes = true
+}
+

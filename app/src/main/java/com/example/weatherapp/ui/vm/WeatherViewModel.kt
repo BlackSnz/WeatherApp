@@ -1,4 +1,4 @@
-package com.example.weatherapp.ui
+package com.example.weatherapp.ui.vm
 
 import android.content.Context
 import android.graphics.drawable.Drawable
@@ -7,24 +7,21 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.preference.PreferenceManager
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.example.weatherapp.R
-import com.example.weatherapp.WeatherApplication
 import com.example.weatherapp.data.weather.WeatherDataRepository
 import com.example.weatherapp.data.weather.WeatherResponse
 import com.example.weatherapp.data.weather.WeatherUi
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import javax.inject.Inject
 import kotlin.math.roundToInt
 
 private const val BASE_ICON_URL = "https://openweathermap.org/img/wn/"
@@ -36,7 +33,15 @@ sealed interface WeatherUpdateUi {
     object Loading : WeatherUpdateUi
 }
 
-class WeatherViewModel(private val weatherDataRepository: WeatherDataRepository) : ViewModel() {
+sealed class WeatherState {
+    object Loading : WeatherState()
+    data class Success(val data: WeatherResponse) : WeatherState()
+    data class Error(val message: String) : WeatherState()
+}
+
+@HiltViewModel
+class WeatherViewModel @Inject constructor(private val weatherDataRepository: WeatherDataRepository
+) : ViewModel() {
 
     var weatherUpdateUi = MutableLiveData<WeatherUpdateUi>(WeatherUpdateUi.Loading)
         private set
@@ -62,13 +67,21 @@ class WeatherViewModel(private val weatherDataRepository: WeatherDataRepository)
             getWeatherIconJob.join()
 
             val currentTemperature = getCurrentTemperature(_weatherData.value?.main?.temp, context)
-            val minCurrentTemperature = getCurrentTemperature(_weatherData.value?.main?.temp_min, context)
-            val maxCurrentTemperature = getCurrentTemperature(_weatherData.value?.main?.temp_max, context)
-            val feelsLikeTemperature = getCurrentTemperature(_weatherData.value?.main?.feels_like, context)
-            val weatherDescription = _weatherData.value?.weather?.get(0)?.description?.replaceFirstChar { it.uppercase()} ?: ""
+            val minCurrentTemperature =
+                getCurrentTemperature(_weatherData.value?.main?.temp_min, context)
+            val maxCurrentTemperature =
+                getCurrentTemperature(_weatherData.value?.main?.temp_max, context)
+            val feelsLikeTemperature =
+                getCurrentTemperature(_weatherData.value?.main?.feels_like, context)
+            val weatherDescription =
+                _weatherData.value?.weather?.get(0)?.description?.replaceFirstChar { it.uppercase() }
+                    ?: ""
             val humidity = _weatherData.value?.main?.humidity.toString()
             val windSpeed = _weatherData.value?.wind?.speed?.roundToInt().toString()
-            val icon = _currentWeatherIcon.value ?: AppCompatResources.getDrawable(context, R.drawable.weather_icon)!!
+            val icon = _currentWeatherIcon.value ?: AppCompatResources.getDrawable(
+                context,
+                R.drawable.weather_icon
+            )!!
             val windDegrees = getWindDirectionCode() ?: "n"
             val windGust = _weatherData.value?.wind?.gust.toString()
 
@@ -94,7 +107,7 @@ class WeatherViewModel(private val weatherDataRepository: WeatherDataRepository)
     private fun getWindDirectionCode(): String? {
         val windDegrees = _weatherData.value?.wind?.deg
         Log.d("WindDirectionCode", "$windDegrees")
-        return when(windDegrees) {
+        return when (windDegrees) {
             in 0..44 -> "n"
             in 45..89 -> "ne"
             in 90..134 -> "e"
@@ -113,26 +126,24 @@ class WeatherViewModel(private val weatherDataRepository: WeatherDataRepository)
 
     // Function to receive data from the OpenWeatherApi server
     fun getWeatherData(latitude: Double, longitude: Double, context: Context) {
-        viewModelScope.launch {
-            val call = weatherDataRepository.getNetworkWeatherData(latitude, longitude)
-            call.enqueue(object : Callback<WeatherResponse> {
-                override fun onResponse(
-                    call: Call<WeatherResponse>,
-                    response: Response<WeatherResponse>
-                ) {
-                    if (response.isSuccessful) {
-                        _weatherData.value = response.body()
-                        updateWeatherUi(context)
-                    } else {
-                        Log.e("Weather", "Error: ${response.code()}")
-                    }
+        val call = weatherDataRepository.getWeatherData(latitude, longitude)
+        call.enqueue(object : Callback<WeatherResponse> {
+            override fun onResponse(
+                call: Call<WeatherResponse>,
+                response: Response<WeatherResponse>
+            ) {
+                if (response.isSuccessful) {
+                    _weatherData.value = response.body()
+                    updateWeatherUi(context)
+                } else {
+                    Log.e("Weather", "Error: ${response.code()}")
                 }
+            }
 
-                override fun onFailure(call: Call<WeatherResponse>, t: Throwable) {
-                    Log.e("Weather", "Request failed: ${t.message}")
-                }
-            })
-        }
+            override fun onFailure(call: Call<WeatherResponse>, t: Throwable) {
+                Log.e("Weather", "Request failed: ${t.message}")
+            }
+        })
     }
 
 
@@ -170,10 +181,12 @@ class WeatherViewModel(private val weatherDataRepository: WeatherDataRepository)
             "Celsius" -> {
                 temperature?.minus(272.15)?.roundToInt()?.toString() ?: return "?"
             }
+
             "Fahrenheit" -> {
                 temperature?.minus(272.15)?.times(9 / 5)?.plus(32)?.roundToInt()?.toString()
                     ?: return "?"
             }
+
             else -> throw IllegalArgumentException("Unsupported temperature unit")
         }
     }
@@ -187,17 +200,6 @@ class WeatherViewModel(private val weatherDataRepository: WeatherDataRepository)
             }
         }
     }
-
-    companion object {
-        val Factory: ViewModelProvider.Factory = viewModelFactory {
-            initializer {
-                val application = (this[APPLICATION_KEY] as WeatherApplication)
-                val weatherDataRepository = application.container.weatherDataRepository
-                WeatherViewModel(weatherDataRepository = weatherDataRepository)
-            }
-        }
-    }
-
 }
 
 
