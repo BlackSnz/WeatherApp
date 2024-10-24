@@ -1,30 +1,38 @@
-package com.example.weatherapp
+package com.example.weatherapp.ui.screens
 
+import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.app.ActivityCompat.OnRequestPermissionsResultCallback
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.DialogFragment
 import androidx.preference.PreferenceManager
+import com.example.weatherapp.R
 import com.example.weatherapp.databinding.WeatherMainBinding
+import com.example.weatherapp.ui.fragments.RequestLocationPermissionDialogFragment
 import com.example.weatherapp.ui.vm.LocationState
 import com.example.weatherapp.ui.vm.LocationViewModel
 import com.example.weatherapp.ui.vm.WeatherUpdateUi
 import com.example.weatherapp.ui.vm.WeatherViewModel
-import com.example.weatherapp.ui.screens.SettingsActivity
 import dagger.hilt.android.AndroidEntryPoint
 
-@AndroidEntryPoint
-class WeatherMainActivity : AppCompatActivity() {
+const val LOCAL_PERMISSION_REQUEST_CODE = 1
 
-    private val LOCATION_PERMISSION_REQUEST_CODE = 1
+@AndroidEntryPoint
+class WeatherMainActivity : AppCompatActivity(),
+    RequestLocationPermissionDialogFragment.NoticeDialogListener {
 
     private lateinit var binding: WeatherMainBinding
     private val locationViewModel: LocationViewModel by viewModels()
     private val weatherViewModel: WeatherViewModel by viewModels()
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,6 +54,8 @@ class WeatherMainActivity : AppCompatActivity() {
         val maxWeatherTemperatureText = binding.tvMaxTemperatureToday
         val feelsLikeTemperatureText = binding.tvFeelsLikeToday
         val weatherDescriptionText = binding.tvWeatherDescription
+        val progressBar = binding.pbWeatherDataLoading
+
 
         // Values for the wind information
         val windCard = binding.windCardView
@@ -57,30 +67,94 @@ class WeatherMainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        // Get current location
-        locationViewModel.getCurrentLocation()
+        // Realise the workflow for requesting the location permission
+        when {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                locationViewModel.getCurrentLocation()
+            }
+
+            ActivityCompat.shouldShowRequestPermissionRationale(
+                this, Manifest.permission.ACCESS_COARSE_LOCATION
+            ) -> {
+                RequestLocationPermissionDialogFragment().show(
+                    supportFragmentManager,
+                    "LocationPermissionAlert"
+                )
+            }
+
+            else -> {
+                requestPermissions(
+                    arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION),
+                    LOCAL_PERMISSION_REQUEST_CODE
+                )
+            }
+        }
+
 
         // Observers for the locationViewModel
         locationViewModel.locationState.observe(this) { locationState ->
-            when(locationState) {
+            when (locationState) {
                 is LocationState.Error -> {
-                    Toast.makeText(this, locationState.message, Toast.LENGTH_SHORT).show()
+                    weatherViewModel.getWeatherData(
+                        locationState.data.latitude,
+                        locationState.data.longitude,
+                        this
+                    )
+                    progressBar.visibility = View.INVISIBLE
+                    cityText.visibility = View.VISIBLE
+                    weatherTemperatureText.visibility = View.VISIBLE
+                    weatherIcon.visibility = View.VISIBLE
+                    minWeatherTemperatureText.visibility = View.VISIBLE
+                    maxWeatherTemperatureText.visibility = View.VISIBLE
+                    weatherDescriptionText.visibility = View.VISIBLE
+                    feelsLikeTemperatureText.visibility = View.VISIBLE
+                    windCard.visibility = View.VISIBLE
+
+
                 }
+
                 LocationState.Loading -> {
-                    //TODO("REALISE PROGRESS BAR")
+                    cityText.visibility = View.INVISIBLE
+                    weatherTemperatureText.visibility = View.INVISIBLE
+                    weatherIcon.visibility = View.INVISIBLE
+                    minWeatherTemperatureText.visibility = View.INVISIBLE
+                    maxWeatherTemperatureText.visibility = View.INVISIBLE
+                    weatherDescriptionText.visibility = View.INVISIBLE
+                    feelsLikeTemperatureText.visibility = View.INVISIBLE
+                    windCard.visibility = View.INVISIBLE
+                    progressBar.visibility = View.VISIBLE
+
                 }
+
                 is LocationState.Success -> {
+                    Log.d("CurrentLocation", "LocationState success")
                     cityText.text = locationState.data.city
-                    weatherViewModel.getWeatherData(locationState.data.latitude, locationState.data.longitude, this)
+                    weatherViewModel.getWeatherData(
+                        locationState.data.latitude,
+                        locationState.data.longitude,
+                        this
+                    )
+                    cityText.visibility = View.VISIBLE
+                    weatherTemperatureText.visibility = View.VISIBLE
+                    weatherIcon.visibility = View.VISIBLE
+                    minWeatherTemperatureText.visibility = View.VISIBLE
+                    maxWeatherTemperatureText.visibility = View.VISIBLE
+                    weatherDescriptionText.visibility = View.VISIBLE
+                    feelsLikeTemperatureText.visibility = View.VISIBLE
+                    windCard.visibility = View.VISIBLE
                 }
             }
         }
 
         // Observers for the weatherViewModel
         weatherViewModel.weatherUpdateUi.observe(this) {
-            when(weatherViewModel.weatherUpdateUi.value) {
+            when (weatherViewModel.weatherUpdateUi.value) {
                 WeatherUpdateUi.Loading -> {
                 }
+
                 WeatherUpdateUi.Success -> {
                     weatherViewModel.weatherUi.value.let {
                         weatherIcon.setImageDrawable(it?.icon)
@@ -109,7 +183,8 @@ class WeatherMainActivity : AppCompatActivity() {
                                     )
                                 feelsLikeTemperatureText.text =
                                     this.getString(
-                                        R.string.current_feels_like_tempertature_celcius, it?.feelsLikeTemperature
+                                        R.string.current_feels_like_tempertature_celcius,
+                                        it?.feelsLikeTemperature
                                     )
                             }
 
@@ -131,7 +206,8 @@ class WeatherMainActivity : AppCompatActivity() {
                                     )
                                 feelsLikeTemperatureText.text =
                                     this.getString(
-                                        R.string.current_feels_like_tempertature_fahrenheit, it?.feelsLikeTemperature
+                                        R.string.current_feels_like_tempertature_fahrenheit,
+                                        it?.feelsLikeTemperature
                                     )
                             }
 
@@ -152,10 +228,15 @@ class WeatherMainActivity : AppCompatActivity() {
                             }
                         }
                         // Update information about wind
-                        windCard.updateWindCard(speed = it?.windSpeed.toString(), "m/s", direction = it?.windDegrees.toString())
+                        windCard.updateWindCard(
+                            speed = it?.windSpeed.toString(),
+                            "m/s",
+                            direction = it?.windDegrees.toString()
+                        )
                     }
                 }
-                else -> { }
+
+                else -> {}
             }
         }
 
@@ -176,21 +257,41 @@ class WeatherMainActivity : AppCompatActivity() {
 
     }
 
+    override fun onDialogNegativeClick(dialog: DialogFragment) {
+        Toast.makeText(this, "Location permission denied", Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onDialogPositiveClick(dialog: DialogFragment) {
+        requestPermissions(
+            arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION),
+            LOCAL_PERMISSION_REQUEST_CODE
+        )
+    }
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
+        permissions: Array<String>, grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                locationViewModel.getCurrentLocation()
-            } else {
-                Toast.makeText(
-                    this,
-                    "Для загрузки погоды необходимо разрешить доступ к местоположению",
-                    Toast.LENGTH_SHORT
-                ).show()
+        when (requestCode) {
+            LOCAL_PERMISSION_REQUEST_CODE -> {
+                if ((grantResults.isNotEmpty() &&
+                            grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                ) {
+                    Log.d("PermissionTest", "OnRequestPermissionResult")
+                    locationViewModel.getCurrentLocation()
+                } else {
+                    // Explain to the user that the feature is unavailable because
+                    // the feature requires a permission that the user has denied.
+                    // At the same time, respect the user's decision. Don't link to
+                    // system settings in an effort to convince the user to change
+                    // their decision.
+                }
+                return
+            }
+
+            else -> {
+                // FOR UNDEFINED REQUEST CODES
             }
         }
     }

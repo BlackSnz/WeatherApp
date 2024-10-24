@@ -40,7 +40,8 @@ sealed class WeatherState {
 }
 
 @HiltViewModel
-class WeatherViewModel @Inject constructor(private val weatherDataRepository: WeatherDataRepository
+class WeatherViewModel @Inject constructor(
+    private val weatherDataRepository: WeatherDataRepository
 ) : ViewModel() {
 
     var weatherUpdateUi = MutableLiveData<WeatherUpdateUi>(WeatherUpdateUi.Loading)

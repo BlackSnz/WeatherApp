@@ -7,6 +7,7 @@ import com.example.weatherapp.data.location.LocationRepository
 import com.example.weatherapp.data.weather.NetworkWeatherDataRepository
 import com.example.weatherapp.data.weather.WeatherDataRepository
 import com.example.weatherapp.network.WeatherApiService
+import com.google.android.gms.location.FusedLocationProviderClient
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -46,7 +47,7 @@ class AppModule {
     // Provide LocationDataRepository
     @Provides
     @Singleton
-    fun provideLocationDataRepository(@ApplicationContext context: Context, geocoder: Geocoder): LocationDataRepository {
-        return LocationRepository(context, geocoder)
+    fun provideLocationDataRepository(fusedLocationProviderClient: FusedLocationProviderClient, geocoder: Geocoder): LocationDataRepository {
+        return LocationRepository(fusedLocationProviderClient, geocoder)
     }
 }
