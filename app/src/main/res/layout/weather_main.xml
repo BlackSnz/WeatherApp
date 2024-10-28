@@ -60,7 +60,6 @@
         android:layout_height="64dp"
         app:layout_constraintHorizontal_chainStyle="packed"
         android:contentDescription="@string/weather_icon"
-        android:src="@drawable/weather_icon"
         android:layout_marginLeft="10dp"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="@id/tvTemperature"

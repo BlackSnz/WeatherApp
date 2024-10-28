@@ -18,7 +18,7 @@ sealed interface LocationState {
 }
 
 @HiltViewModel
-class LocationViewModel @Inject constructor(): ViewModel() {
+class LocationViewModel @Inject constructor() : ViewModel() {
 
     @Inject
     lateinit var locationRepository: LocationDataRepository
@@ -30,8 +30,10 @@ class LocationViewModel @Inject constructor(): ViewModel() {
         Log.d("CurrentLocation", "I'm in getCurrentLocation in LocationViewModel")
         _locationState.value = LocationState.Loading
         locationRepository.getCurrentLocation { locationCallbackResult ->
-            when(locationCallbackResult) {
-                is LocationCallbackResult.Error -> _locationState.value = LocationState.Error("Can't loading current location", DefaultLocationInfo)
+            when (locationCallbackResult) {
+                is LocationCallbackResult.Error -> _locationState.value =
+                    LocationState.Error("Can't loading current location", DefaultLocationInfo)
+
                 is LocationCallbackResult.OnlyCoordinates -> TODO()
                 is LocationCallbackResult.Success -> {
                     _locationState.postValue(LocationState.Success(locationCallbackResult.data))

@@ -1,8 +1,10 @@
 package com.example.weatherapp.ui.screens
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -10,21 +12,27 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityCompat
-import androidx.core.app.ActivityCompat.OnRequestPermissionsResultCallback
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
 import androidx.preference.PreferenceManager
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.example.weatherapp.R
 import com.example.weatherapp.databinding.WeatherMainBinding
 import com.example.weatherapp.ui.fragments.RequestLocationPermissionDialogFragment
 import com.example.weatherapp.ui.vm.LocationState
 import com.example.weatherapp.ui.vm.LocationViewModel
-import com.example.weatherapp.ui.vm.WeatherUpdateUi
+import com.example.weatherapp.ui.vm.WeatherDataUiState
 import com.example.weatherapp.ui.vm.WeatherViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlin.math.roundToInt
 
 const val LOCAL_PERMISSION_REQUEST_CODE = 1
+private const val BASE_ICON_URL = "https://openweathermap.org/img/wn/"
+private const val ICON_URL_POSTFIX = "@2x.png"
 
 @AndroidEntryPoint
 class WeatherMainActivity : AppCompatActivity(),
@@ -67,6 +75,30 @@ class WeatherMainActivity : AppCompatActivity(),
             startActivity(intent)
         }
 
+        fun showProgressBar() {
+            cityText.visibility = View.INVISIBLE
+            weatherTemperatureText.visibility = View.INVISIBLE
+            weatherIcon.visibility = View.INVISIBLE
+            minWeatherTemperatureText.visibility = View.INVISIBLE
+            maxWeatherTemperatureText.visibility = View.INVISIBLE
+            weatherDescriptionText.visibility = View.INVISIBLE
+            feelsLikeTemperatureText.visibility = View.INVISIBLE
+            windCard.visibility = View.INVISIBLE
+            progressBar.visibility = View.VISIBLE
+        }
+
+        fun hideProgressBar() {
+            progressBar.visibility = View.GONE
+            cityText.visibility = View.VISIBLE
+            weatherTemperatureText.visibility = View.VISIBLE
+            weatherIcon.visibility = View.VISIBLE
+            minWeatherTemperatureText.visibility = View.VISIBLE
+            maxWeatherTemperatureText.visibility = View.VISIBLE
+            weatherDescriptionText.visibility = View.VISIBLE
+            feelsLikeTemperatureText.visibility = View.VISIBLE
+            windCard.visibility = View.VISIBLE
+        }
+
         // Realise the workflow for requesting the location permission
         when {
             ContextCompat.checkSelfPermission(
@@ -93,74 +125,45 @@ class WeatherMainActivity : AppCompatActivity(),
             }
         }
 
-
-        // Observers for the locationViewModel
+        // Observers
         locationViewModel.locationState.observe(this) { locationState ->
             when (locationState) {
                 is LocationState.Error -> {
                     weatherViewModel.getWeatherData(
                         locationState.data.latitude,
-                        locationState.data.longitude,
-                        this
+                        locationState.data.longitude
                     )
-                    progressBar.visibility = View.INVISIBLE
-                    cityText.visibility = View.VISIBLE
-                    weatherTemperatureText.visibility = View.VISIBLE
-                    weatherIcon.visibility = View.VISIBLE
-                    minWeatherTemperatureText.visibility = View.VISIBLE
-                    maxWeatherTemperatureText.visibility = View.VISIBLE
-                    weatherDescriptionText.visibility = View.VISIBLE
-                    feelsLikeTemperatureText.visibility = View.VISIBLE
-                    windCard.visibility = View.VISIBLE
-
-
                 }
 
                 LocationState.Loading -> {
-                    cityText.visibility = View.INVISIBLE
-                    weatherTemperatureText.visibility = View.INVISIBLE
-                    weatherIcon.visibility = View.INVISIBLE
-                    minWeatherTemperatureText.visibility = View.INVISIBLE
-                    maxWeatherTemperatureText.visibility = View.INVISIBLE
-                    weatherDescriptionText.visibility = View.INVISIBLE
-                    feelsLikeTemperatureText.visibility = View.INVISIBLE
-                    windCard.visibility = View.INVISIBLE
-                    progressBar.visibility = View.VISIBLE
-
+                    showProgressBar()
                 }
 
                 is LocationState.Success -> {
-                    Log.d("CurrentLocation", "LocationState success")
                     cityText.text = locationState.data.city
                     weatherViewModel.getWeatherData(
                         locationState.data.latitude,
-                        locationState.data.longitude,
-                        this
+                        locationState.data.longitude
                     )
-                    cityText.visibility = View.VISIBLE
-                    weatherTemperatureText.visibility = View.VISIBLE
-                    weatherIcon.visibility = View.VISIBLE
-                    minWeatherTemperatureText.visibility = View.VISIBLE
-                    maxWeatherTemperatureText.visibility = View.VISIBLE
-                    weatherDescriptionText.visibility = View.VISIBLE
-                    feelsLikeTemperatureText.visibility = View.VISIBLE
-                    windCard.visibility = View.VISIBLE
                 }
             }
         }
 
-        // Observers for the weatherViewModel
-        weatherViewModel.weatherUpdateUi.observe(this) {
-            when (weatherViewModel.weatherUpdateUi.value) {
-                WeatherUpdateUi.Loading -> {
+        weatherViewModel.weatherDataUiState.observe(this) { state ->
+            when (state) {
+                is WeatherDataUiState.Loading -> {
+                    showProgressBar()
                 }
 
-                WeatherUpdateUi.Success -> {
-                    weatherViewModel.weatherUi.value.let {
-                        weatherIcon.setImageDrawable(it?.icon)
-                        humidityText.text = this.getString(R.string.current_humidity, it?.humidity)
-                        windText.text = this.getString(R.string.current_wind, it?.windSpeed)
-                        weatherDescriptionText.text = it?.weatherDescription
+                is WeatherDataUiState.Success -> {
+                    hideProgressBar()
+                    state.data.let {
+                        getWeatherIcon(it.iconCode, this) { drawable ->
+                            weatherIcon.setImageDrawable(drawable)
+                        }
+                        humidityText.text = this.getString(R.string.current_humidity, it.humidity)
+                        windText.text = this.getString(R.string.current_wind, it.windSpeed)
+                        weatherDescriptionText.text = it.weatherDescription
                         // Checking the temperature unit and set text for the temperature
                         val temperatureUnit =
                             sharedPreferences.getString("temperature_unit", "Celsius")
@@ -169,22 +172,34 @@ class WeatherMainActivity : AppCompatActivity(),
                                 weatherTemperatureText.text =
                                     this.getString(
                                         R.string.current_temperature_celcius,
-                                        it?.currentTemperature
+                                        calculateTemperatureByUnit(
+                                            it.currentTemperature.toDouble(),
+                                            temperatureUnit
+                                        )
                                     )
                                 minWeatherTemperatureText.text =
                                     this.getString(
                                         R.string.current_min_temperature_celcuis,
-                                        it?.minTemperatureToday
+                                        calculateTemperatureByUnit(
+                                            it.minTemperatureToday.toDouble(),
+                                            temperatureUnit
+                                        )
                                     )
                                 maxWeatherTemperatureText.text =
                                     this.getString(
                                         R.string.current_max_temperature_celcuis,
-                                        it?.maxTemperatureToday
+                                        calculateTemperatureByUnit(
+                                            it.maxTemperatureToday.toDouble(),
+                                            temperatureUnit
+                                        )
                                     )
                                 feelsLikeTemperatureText.text =
                                     this.getString(
                                         R.string.current_feels_like_tempertature_celcius,
-                                        it?.feelsLikeTemperature
+                                        calculateTemperatureByUnit(
+                                            it.feelsLikeTemperature.toDouble(),
+                                            temperatureUnit
+                                        )
                                     )
                             }
 
@@ -192,22 +207,38 @@ class WeatherMainActivity : AppCompatActivity(),
                                 weatherTemperatureText.text =
                                     this.getString(
                                         R.string.current_temperature_fahrenheit,
-                                        it?.currentTemperature
+                                        calculateTemperatureByUnit(
+                                            it.currentTemperature.toDouble(),
+                                            temperatureUnit
+                                        )
+
                                     )
                                 minWeatherTemperatureText.text =
                                     this.getString(
                                         R.string.current_min_temperature_fahrenheit,
-                                        it?.minTemperatureToday
+                                        calculateTemperatureByUnit(
+                                            it.minTemperatureToday.toDouble(),
+                                            temperatureUnit
+                                        )
+
                                     )
                                 maxWeatherTemperatureText.text =
                                     this.getString(
                                         R.string.current_max_temperature_fahrenheit,
-                                        it?.maxTemperatureToday
+                                        calculateTemperatureByUnit(
+                                            it.maxTemperatureToday.toDouble(),
+                                            temperatureUnit
+                                        )
+
                                     )
                                 feelsLikeTemperatureText.text =
                                     this.getString(
                                         R.string.current_feels_like_tempertature_fahrenheit,
-                                        it?.feelsLikeTemperature
+                                        calculateTemperatureByUnit(
+                                            it.feelsLikeTemperature.toDouble(),
+                                            temperatureUnit
+                                        )
+
                                     )
                             }
 
@@ -215,23 +246,35 @@ class WeatherMainActivity : AppCompatActivity(),
                         }
 
                         // Checking the pressure unit and set text for the pressure
-                        when (sharedPreferences.getString("pressure_unit", "mmHg")) {
+                        val pressureUnit = sharedPreferences.getString("pressure_unit", "mmHg")
+                        when (pressureUnit) {
                             "hPa" -> {
                                 pressureText.text =
-                                    this.getString(R.string.current_pressure_hpa, it?.pressure)
+                                    this.getString(
+                                        R.string.current_pressure_hpa,
+                                        calculatePressureByUnit(
+                                            it.pressure.toDouble(),
+                                            pressureUnit
+                                        )
+                                    )
                             }
 
                             "mmHg" -> {
                                 pressureText.text =
-                                    this.getString(R.string.current_pressure_mmHg, it?.pressure)
-
+                                    this.getString(
+                                        R.string.current_pressure_mmHg,
+                                        calculatePressureByUnit(
+                                            it.pressure.toDouble(),
+                                            pressureUnit
+                                        )
+                                    )
                             }
                         }
                         // Update information about wind
                         windCard.updateWindCard(
-                            speed = it?.windSpeed.toString(),
+                            speed = it.windSpeed,
                             "m/s",
-                            direction = it?.windDegrees.toString()
+                            direction = it.windDegrees
                         )
                     }
                 }
@@ -239,22 +282,6 @@ class WeatherMainActivity : AppCompatActivity(),
                 else -> {}
             }
         }
-
-        weatherViewModel.currentWeatherIcon.observe(this) { drawable ->
-            drawable?.let {
-                weatherIcon.setImageDrawable(it)
-            }
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        weatherViewModel.updateWeatherUi(this)
-    }
-
-    override fun onPause() {
-        super.onPause()
-
     }
 
     override fun onDialogNegativeClick(dialog: DialogFragment) {
@@ -292,6 +319,53 @@ class WeatherMainActivity : AppCompatActivity(),
 
             else -> {
                 // FOR UNDEFINED REQUEST CODES
+            }
+        }
+    }
+
+    private fun getWeatherIcon(iconCode: String, context: Context, callback: (Drawable?) -> Unit) {
+        val iconUrl = "$BASE_ICON_URL$iconCode$ICON_URL_POSTFIX"
+
+        Glide.with(context)
+            .load(iconUrl)
+            .into(object : CustomTarget<Drawable>() {
+                override fun onResourceReady(
+                    resource: Drawable,
+                    transition: Transition<in Drawable>?
+                ) {
+                    callback(resource)
+                }
+
+                override fun onLoadCleared(placeholder: Drawable?) {
+                }
+
+                override fun onLoadFailed(errorDrawable: Drawable?) {
+                    callback(
+                        AppCompatResources.getDrawable(context, R.drawable.weather_icon)
+                    )
+                }
+            })
+        }
+
+    private fun calculateTemperatureByUnit(temperature: Double, temperatureUnit: String): String {
+        return when (temperatureUnit) {
+            "Celsius" -> {
+                temperature.minus(272.15).roundToInt().toString()
+            }
+
+            "Fahrenheit" -> {
+                temperature.minus(272.15).times(9 / 5).plus(32).roundToInt().toString()
+            }
+
+            else -> throw IllegalArgumentException("Unsupported temperature unit")
+        }
+    }
+
+    private fun calculatePressureByUnit(pressure: Double, pressureUnit: String): String {
+        return when (pressureUnit) {
+            "mmHg" -> pressure.times(0.75006).roundToInt().toString()
+            else -> {
+                pressure.roundToInt().toString()
             }
         }
     }
