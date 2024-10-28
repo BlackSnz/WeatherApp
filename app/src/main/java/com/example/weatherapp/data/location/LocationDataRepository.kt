@@ -1,29 +1,28 @@
 package com.example.weatherapp.data.location
 
-import android.Manifest
-import android.content.Context
 import android.location.Geocoder
 import android.location.Location
 import android.os.Build
 import android.util.Log
-import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
-import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.suspendCancellableCoroutine
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 
 interface LocationDataRepository {
-    fun getCurrentLocation(callback: (LocationCallbackResult) -> Unit)
+    suspend fun getCurrentLocation() : LocationResult
 }
 
-sealed class LocationCallbackResult {
-    data class Success(val data: LocationInfo) : LocationCallbackResult()
-    data class OnlyCoordinates(val data: LocationInfo) : LocationCallbackResult()
-    data class Error(val message: String) : LocationCallbackResult()
+sealed interface LocationResult {
+    data class Success(val data: LocationInfo) : LocationResult
+    data class OnlyCoordinates(val data: LocationInfo) : LocationResult
+    data class Error(val message: String) : LocationResult
 }
 
 @Singleton
@@ -32,81 +31,80 @@ class LocationRepository @Inject constructor(
     private val geocoder: Geocoder,
 ) : LocationDataRepository {
 
-    override fun getCurrentLocation(callback: (LocationCallbackResult) -> Unit) {
-        try {
-            fusedLocationProviderClient.getCurrentLocation(
-                Priority.PRIORITY_BALANCED_POWER_ACCURACY, null
-            ).addOnSuccessListener { location: Location? ->
-                if (location != null) {
-                    val latitude = location.latitude.toBigDecimal()
-                        .setScale(3, java.math.RoundingMode.HALF_EVEN).toDouble()
-                    val longitude = location.longitude.toBigDecimal()
-                        .setScale(3, java.math.RoundingMode.HALF_EVEN).toDouble()
-                    getCurrentLocationName(latitude, longitude) { locationName ->
-                        if (locationName != null) {
-                            callback(
-                                LocationCallbackResult.Success(
-                                    LocationInfo(
-                                        latitude,
-                                        longitude,
-                                        locationName.first,
-                                        locationName.second
-                                    )
-                                )
-                            )
-                        } else { // If can't get location name, return only coordinates
-                            callback(
-                                LocationCallbackResult.OnlyCoordinates(
-                                    LocationInfo(
-                                        latitude,
-                                        longitude,
-                                        null,
-                                        null
-                                    )
-                                )
-                            )
-                        }
-                    }
-                } else { // If can't get location
-                    callback(
-                        LocationCallbackResult.Error("Can't get current location")
+    override suspend fun getCurrentLocation(): LocationResult {
+        return try {
+            val location = getLocation()
+            if (location != null) {
+                val latitude = location.latitude.toBigDecimal()
+                    .setScale(3, java.math.RoundingMode.HALF_EVEN).toDouble()
+                val longitude = location.longitude.toBigDecimal()
+                    .setScale(3, java.math.RoundingMode.HALF_EVEN).toDouble()
+                val locationName = getCurrentLocationName(latitude, longitude)
+                if (locationName != null) {
+                    LocationResult.Success(
+                        LocationInfo(
+                            latitude,
+                            longitude,
+                            locationName.first,
+                            locationName.second
+                        )
+                    )
+                } else { // If can't get location name, return only coordinates
+                    LocationResult.OnlyCoordinates(
+                        LocationInfo(
+                            latitude,
+                            longitude,
+                            null,
+                            null
+                        )
                     )
                 }
-            }.addOnFailureListener { exception: Exception ->
-                callback(
-                    LocationCallbackResult.Error(
-                        exception.message ?: "Unknown error when try to get current location"
-                    )
-                )
+            } else { // If can't get location
+                LocationResult.Error("Can't get current location")
             }
-        } catch (e: SecurityException) { // When don't have location permissions
-            callback(
-                LocationCallbackResult.Error(
-                    e.message ?: "Don't have permission for location"
-                )
-            )
+        } catch (e: SecurityException) {
+            LocationResult.Error(e.message ?: "Don't have permission for location")
+        } catch (e: Exception) {
+            LocationResult.Error(e.message ?: "Unknown error when try to get current location")
         }
     }
 
-    private fun getCurrentLocationName(
+    private suspend fun getLocation(): Location? = suspendCancellableCoroutine { cont ->
+        try {
+            fusedLocationProviderClient.getCurrentLocation(
+                Priority.PRIORITY_BALANCED_POWER_ACCURACY, null
+            ).addOnSuccessListener { location ->
+                cont.resume(location)
+            }.addOnFailureListener { exception ->
+                cont.resumeWithException(exception)
+            }
+        } catch (e: SecurityException) {
+            cont.resumeWithException(e)
+        }
+    }
+
+    private suspend fun getCurrentLocationName(
         latitude: Double,
         longitude: Double,
-        callback: (Pair<String?, String?>?) -> Unit
-    ) {
+    ): Pair<String, String>? {
+        val deferredResult = CompletableDeferred<Pair<String, String>?>()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             geocoder.getFromLocation(latitude, longitude, 1, object : Geocoder.GeocodeListener {
                 override fun onGeocode(addresses: MutableList<android.location.Address>) {
                     if (addresses.isNotEmpty()) {
-                        callback(Pair(addresses[0].locality, addresses[0].countryName))
+                        deferredResult.complete(
+                            Pair(
+                                addresses[0].locality,
+                                addresses[0].countryName
+                            )
+                        )
                     } else {
-                        Log.d("CurrentLocation", "Can't get location in getCurrentLocationName()")
-                        callback(null)
+                        deferredResult.complete(null)
                     }
                 }
 
                 override fun onError(errorMessage: String?) {
-                    Log.e("CurrentLocation", "Geocoding error: $errorMessage")
-                    callback(null)
+                    deferredResult.complete(null)
                 }
             })
         } else {
@@ -114,15 +112,16 @@ class LocationRepository @Inject constructor(
             try {
                 val addresses = geocoder.getFromLocation(latitude, longitude, 1)
                 if (!addresses.isNullOrEmpty()) {
-                    callback(Pair(addresses[0].locality, addresses[0].countryName))
+                    deferredResult.complete(Pair(addresses[0].locality, addresses[0].countryName))
                 } else {
                     Log.d("LocationTest", "No address found")
-                    callback(null)
+                    deferredResult.complete(null)
                 }
             } catch (e: IOException) {
                 e.printStackTrace()
-                callback(null)
+                deferredResult.complete(null)
             }
         }
+        return deferredResult.await()
     }
 }

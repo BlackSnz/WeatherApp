@@ -23,10 +23,8 @@ import com.bumptech.glide.request.transition.Transition
 import com.example.weatherapp.R
 import com.example.weatherapp.databinding.WeatherMainBinding
 import com.example.weatherapp.ui.fragments.RequestLocationPermissionDialogFragment
-import com.example.weatherapp.ui.vm.LocationState
-import com.example.weatherapp.ui.vm.LocationViewModel
 import com.example.weatherapp.ui.vm.WeatherDataUiState
-import com.example.weatherapp.ui.vm.WeatherViewModel
+import com.example.weatherapp.ui.vm.WeatherMainScreenViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.math.roundToInt
 
@@ -39,8 +37,7 @@ class WeatherMainActivity : AppCompatActivity(),
     RequestLocationPermissionDialogFragment.NoticeDialogListener {
 
     private lateinit var binding: WeatherMainBinding
-    private val locationViewModel: LocationViewModel by viewModels()
-    private val weatherViewModel: WeatherViewModel by viewModels()
+    private val weatherMainScreenViewModel: WeatherMainScreenViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,15 +61,20 @@ class WeatherMainActivity : AppCompatActivity(),
         val weatherDescriptionText = binding.tvWeatherDescription
         val progressBar = binding.pbWeatherDataLoading
 
-
         // Values for the wind information
         val windCard = binding.windCardView
 
-        // Values for the settings
+        // Settings icon
         val settingsIcon = binding.ivSettings
         settingsIcon.setOnClickListener {
             val intent = Intent(this, SettingsActivity::class.java)
             startActivity(intent)
+        }
+
+        // Refresh icon
+        val refreshIcon = binding.ivRefresh
+        refreshIcon.setOnClickListener {
+            weatherMainScreenViewModel.getWeatherInformation()
         }
 
         fun showProgressBar() {
@@ -105,7 +107,7 @@ class WeatherMainActivity : AppCompatActivity(),
                 this,
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED -> {
-                locationViewModel.getCurrentLocation()
+                weatherMainScreenViewModel.getWeatherInformation()
             }
 
             ActivityCompat.shouldShowRequestPermissionRationale(
@@ -126,30 +128,7 @@ class WeatherMainActivity : AppCompatActivity(),
         }
 
         // Observers
-        locationViewModel.locationState.observe(this) { locationState ->
-            when (locationState) {
-                is LocationState.Error -> {
-                    weatherViewModel.getWeatherData(
-                        locationState.data.latitude,
-                        locationState.data.longitude
-                    )
-                }
-
-                LocationState.Loading -> {
-                    showProgressBar()
-                }
-
-                is LocationState.Success -> {
-                    cityText.text = locationState.data.city
-                    weatherViewModel.getWeatherData(
-                        locationState.data.latitude,
-                        locationState.data.longitude
-                    )
-                }
-            }
-        }
-
-        weatherViewModel.weatherDataUiState.observe(this) { state ->
+        weatherMainScreenViewModel.weatherDataUiState.observe(this) { state ->
             when (state) {
                 is WeatherDataUiState.Loading -> {
                     showProgressBar()
@@ -161,6 +140,7 @@ class WeatherMainActivity : AppCompatActivity(),
                         getWeatherIcon(it.iconCode, this) { drawable ->
                             weatherIcon.setImageDrawable(drawable)
                         }
+                        cityText.text = weatherMainScreenViewModel.locationData.value?.city
                         humidityText.text = this.getString(R.string.current_humidity, it.humidity)
                         windText.text = this.getString(R.string.current_wind, it.windSpeed)
                         weatherDescriptionText.text = it.weatherDescription
@@ -306,7 +286,7 @@ class WeatherMainActivity : AppCompatActivity(),
                             grantResults[0] == PackageManager.PERMISSION_GRANTED)
                 ) {
                     Log.d("PermissionTest", "OnRequestPermissionResult")
-                    locationViewModel.getCurrentLocation()
+                    weatherMainScreenViewModel.getWeatherInformation()
                 } else {
                     // Explain to the user that the feature is unavailable because
                     // the feature requires a permission that the user has denied.

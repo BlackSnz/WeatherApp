@@ -2,20 +2,23 @@ package com.example.weatherapp.data.weather
 
 import android.util.Log
 import com.example.weatherapp.network.WeatherApiService
+import com.example.weatherapp.ui.vm.WeatherDataUiState
+import kotlinx.coroutines.CompletableDeferred
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import javax.inject.Inject
 
 interface WeatherDataRepository {
-    fun getWeatherData(latitude: Double, longitude: Double, callback: (WeatherResponse?) -> Unit)
+    suspend fun getWeatherData(latitude: Double, longitude: Double): WeatherResponse?
 }
 
 class NetworkWeatherDataRepository @Inject constructor(
     private val weatherApiService: WeatherApiService
 ) : WeatherDataRepository {
 
-    override fun getWeatherData(latitude: Double, longitude: Double, callback: (WeatherResponse?) -> Unit) {
+    override suspend fun getWeatherData(latitude: Double, longitude: Double): WeatherResponse? {
+        val result = CompletableDeferred<WeatherResponse?>()
         val call = weatherApiService.getWeatherData(latitude, longitude)
         call.enqueue(object : Callback<WeatherResponse> {
             override fun onResponse(
@@ -23,20 +26,18 @@ class NetworkWeatherDataRepository @Inject constructor(
                 response: Response<WeatherResponse>
             ) {
                 if (response.isSuccessful) {
-                    callback(
-                        response.body()
-                    )
+                    result.complete(response.body())
                 } else {
-                    callback(null)
-                    Log.e("Weather", "Error: ${response.code()}")
+                    result.complete(response.body())
                 }
             }
 
             override fun onFailure(call: Call<WeatherResponse>, t: Throwable) {
                 Log.e("Weather", "Request failed: ${t.message}")
-                callback(null)
+                result.complete(null)
             }
         })
+        return result.await()
     }
 
 }
