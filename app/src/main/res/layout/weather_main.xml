@@ -8,18 +8,19 @@
     android:padding="16dp"
     tools:context=".ui.screens.WeatherMainActivity">
 
-    <com.example.weatherapp.ui.screens.WindCardView
+    <com.example.weatherapp.ui.view.WindCardView
+        android:id="@+id/windCardView"
         style="@style/WindCardView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/windCardView"
         android:layout_marginTop="20dp"
         android:visibility="invisible"
-        app:layout_constraintTop_toBottomOf="@id/tvMinTemperatureToday"
+        app:direction="se"
         app:layout_constraintStart_toStartOf="parent"
-        app:speedValue="8"
+        app:layout_constraintTop_toBottomOf="@id/rvHourlyForecast"
         app:speedUnit="m/s"
-        app:direction="se"/>
+        app:speedValue="8"
+        tools:visibility="visible" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guidelineLeft"
@@ -42,29 +43,29 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:fontFamily="sans-serif-medium"
-        tools:text="24°C"
         android:textColor="?android:attr/textColorPrimary"
         android:textSize="64sp"
         android:textStyle="bold"
         android:visibility="invisible"
-        android:layout_marginTop="100dp"
         app:layout_constraintHorizontal_chainStyle="packed"
-        app:layout_constraintEnd_toStartOf="@id/ivWeatherIcon"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/tvCity"
+        tools:text="24°C"
+        tools:visibility="visible" />
 
     <!-- The weather icon -->
     <ImageView
         android:id="@+id/ivWeatherIcon"
         android:layout_width="64dp"
         android:layout_height="64dp"
-        app:layout_constraintHorizontal_chainStyle="packed"
-        android:contentDescription="@string/weather_icon"
         android:layout_marginLeft="10dp"
+        android:contentDescription="@string/weather_icon"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="@id/tvTemperature"
+        app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintStart_toEndOf="@id/tvTemperature"
-        app:layout_constraintTop_toTopOf="@id/tvTemperature" />
+        app:layout_constraintTop_toTopOf="@id/tvTemperature"
+        tools:visibility="visible" />
 
     <!-- The minimum today temperature -->
     <TextView
@@ -72,65 +73,71 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:fontFamily="sans-serif-medium"
-        tools:text="Min: 10°C"
         android:textColor="?android:attr/textColorSecondary"
         android:textSize="16sp"
         android:visibility="invisible"
         app:layout_constraintStart_toStartOf="@id/tvTemperature"
-        app:layout_constraintTop_toBottomOf="@id/tvTemperature" />
+        app:layout_constraintTop_toBottomOf="@id/tvTemperature"
+        tools:text="Min: 10°C"
+        tools:visibility="visible" />
 
     <!-- The maximum today temperature -->
     <TextView
         android:id="@+id/tvMaxTemperatureToday"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
         android:fontFamily="sans-serif-medium"
-        tools:text="Max: 24°C"
         android:textColor="?android:attr/textColorSecondary"
         android:textSize="16sp"
-        android:layout_marginLeft="10dp"
         android:visibility="invisible"
         app:layout_constraintStart_toEndOf="@id/tvMinTemperatureToday"
-        app:layout_constraintTop_toBottomOf="@id/tvTemperature"/>
+        app:layout_constraintTop_toBottomOf="@id/tvTemperature"
+        tools:text="Max: 24°C"
+        tools:visibility="visible" />
 
     <!-- Название города -->
     <TextView
         android:id="@+id/tvCity"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
         android:fontFamily="sans-serif"
-        tools:text="Moscow"
-        android:visibility="invisible"
         android:textColor="?android:attr/textColorSecondary"
         android:textSize="18sp"
-        app:layout_constraintBottom_toTopOf="@id/tvTemperature"
-        app:layout_constraintStart_toStartOf="parent"/>
+        android:visibility="invisible"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ivRefresh"
+        tools:text="Moscow"
+        tools:visibility="visible" />
 
     <!-- Описание погоды -->
     <TextView
         android:id="@+id/tvWeatherDescription"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:fontFamily="sans-serif-medium"
         android:textColor="?android:attr/textColorSecondary"
         android:textSize="18sp"
-        app:layout_constraintEnd_toEndOf="parent"
         android:visibility="invisible"
-        android:fontFamily="sans-serif-medium"
-        app:layout_constraintBottom_toTopOf="@id/tvTemperature"
-        tools:text="Sunny" />
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ivRefresh"
+        tools:text="Sunny"
+        tools:visibility="visible" />
 
     <!-- Feels like today temperature -->
     <TextView
         android:id="@+id/tvFeelsLikeToday"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:visibility="invisible"
-        tools:text="Feels like: 24°C"
         android:textColor="?android:attr/textColorSecondary"
         android:textSize="18sp"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvWeatherDescription"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
+        tools:text="Feels like: 24°C"
+        tools:visibility="visible" />
 
 
     <!-- Дополнительная информация -->
@@ -206,32 +213,41 @@
         android:id="@+id/ivSettings"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="15dp"
+        android:layout_marginTop="45dp"
         android:layout_marginEnd="15dp"
+        android:clickable="true"
         android:contentDescription="Settings icon"
         android:src="@drawable/settings_icon"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:clickable="true"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
         android:id="@+id/ivRefresh"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="45dp"
+        android:layout_marginRight="10dp"
+        android:clickable="true"
         android:contentDescription="Refresh icon"
         android:src="@drawable/refresh_icon"
-        android:layout_marginTop="15dp"
-        android:layout_marginRight="10dp"
-        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintRight_toLeftOf="@id/ivSettings"
-        android:clickable="true"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ProgressBar
         android:id="@+id/pbWeatherDataLoading"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvHourlyForecast"
+        android:layout_width="match_parent"
+        android:layout_height="90dp"
+        app:layout_constraintTop_toBottomOf="@id/tvMinTemperatureToday"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="20dp"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

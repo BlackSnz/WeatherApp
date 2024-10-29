@@ -1,6 +1,5 @@
 package com.example.weatherapp.di
 
-import android.content.Context
 import android.location.Geocoder
 import com.example.weatherapp.data.location.LocationDataRepository
 import com.example.weatherapp.data.location.LocationRepository
@@ -11,7 +10,6 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory

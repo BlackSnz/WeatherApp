@@ -1,4 +1,4 @@
-package com.example.weatherapp.ui.screens
+package com.example.weatherapp.ui.view
 
 import android.content.Context
 import android.graphics.drawable.Drawable
@@ -10,17 +10,19 @@ import androidx.cardview.widget.CardView
 import com.example.weatherapp.R
 import com.example.weatherapp.databinding.WindCardBinding
 
-class WindCardView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = com.google.android.material.R.attr.cardViewStyle) :
-    CardView(context, attrs, defStyleAttr) {
+class WindCardView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = com.google.android.material.R.attr.cardViewStyle
+) : CardView(context, attrs, defStyleAttr) {
 
     private var textSpeedValue: String
     private var textSpeedUnit: String
     private var currentDirection: String
-    private val binding: WindCardBinding
+    private val binding: WindCardBinding =
+        WindCardBinding.inflate(LayoutInflater.from(context), this, true)
 
     init {
-        binding = WindCardBinding.inflate(LayoutInflater.from(context), this, true)
-
         context.theme.obtainStyledAttributes(
             attrs,
             R.styleable.WindCardView,
@@ -30,8 +32,6 @@ class WindCardView @JvmOverloads constructor(context: Context, attrs: AttributeS
                 textSpeedValue = getString(R.styleable.WindCardView_speedValue) ?: "0"
                 textSpeedUnit = getString(R.styleable.WindCardView_speedUnit) ?: "m/s"
                 currentDirection = getString(R.styleable.WindCardView_direction) ?: "n"
-
-
             } finally {
                 recycle()
             }
@@ -40,7 +40,6 @@ class WindCardView @JvmOverloads constructor(context: Context, attrs: AttributeS
         binding.tvWindCardSpeedValue.text = textSpeedValue
         binding.tvWindCardSpeedUnit.text = textSpeedUnit
         binding.ivWindCardIcon.setImageDrawable(setDirectionIcon())
-
     }
 
     fun updateWindCard(speed: String, unit: String, direction: String) {

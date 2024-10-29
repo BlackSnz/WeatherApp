@@ -32,9 +32,11 @@ class LocationRepository @Inject constructor(
 ) : LocationDataRepository {
 
     override suspend fun getCurrentLocation(): LocationResult {
+        Log.d("LoadingDebug", "invoke getCurrentLocation in Repository")
         return try {
             val location = getLocation()
             if (location != null) {
+                Log.d("LoadingDebug", "Get location, not null")
                 val latitude = location.latitude.toBigDecimal()
                     .setScale(3, java.math.RoundingMode.HALF_EVEN).toDouble()
                 val longitude = location.longitude.toBigDecimal()
@@ -50,6 +52,7 @@ class LocationRepository @Inject constructor(
                         )
                     )
                 } else { // If can't get location name, return only coordinates
+                    Log.d("LoadingDebug", "Can't get location name, return only coordinates")
                     LocationResult.OnlyCoordinates(
                         LocationInfo(
                             latitude,
@@ -60,6 +63,7 @@ class LocationRepository @Inject constructor(
                     )
                 }
             } else { // If can't get location
+                Log.d("LoadingDebug", "Can't get location")
                 LocationResult.Error("Can't get current location")
             }
         } catch (e: SecurityException) {

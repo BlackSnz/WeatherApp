@@ -11,20 +11,26 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
 import androidx.preference.PreferenceManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.example.weatherapp.R
 import com.example.weatherapp.databinding.WeatherMainBinding
 import com.example.weatherapp.ui.fragments.RequestLocationPermissionDialogFragment
+import com.example.weatherapp.ui.view.adapters.WeatherHourlyAdapter
 import com.example.weatherapp.ui.vm.WeatherDataUiState
 import com.example.weatherapp.ui.vm.WeatherMainScreenViewModel
+import com.example.weatherapp.utils.TemperatureUtils.calculateTemperatureByUnit
+import com.example.weatherapp.utils.WeatherIconUtils.getWeatherIconId
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.math.roundToInt
 
@@ -37,6 +43,7 @@ class WeatherMainActivity : AppCompatActivity(),
     RequestLocationPermissionDialogFragment.NoticeDialogListener {
 
     private lateinit var binding: WeatherMainBinding
+    private lateinit var adapter: WeatherHourlyAdapter
     private val weatherMainScreenViewModel: WeatherMainScreenViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,6 +84,10 @@ class WeatherMainActivity : AppCompatActivity(),
             weatherMainScreenViewModel.getWeatherInformation()
         }
 
+        // RecyclerView for Hourly Forecast
+        val recyclerView = findViewById<RecyclerView>(R.id.rvHourlyForecast)
+        recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+
         fun showProgressBar() {
             cityText.visibility = View.INVISIBLE
             weatherTemperatureText.visibility = View.INVISIBLE
@@ -107,6 +118,7 @@ class WeatherMainActivity : AppCompatActivity(),
                 this,
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED -> {
+                Log.d("LoadingDebug", "Permission granted")
                 weatherMainScreenViewModel.getWeatherInformation()
             }
 
@@ -128,18 +140,25 @@ class WeatherMainActivity : AppCompatActivity(),
         }
 
         // Observers
+        weatherMainScreenViewModel.weatherHourlyData.observe(this) {
+            val dataList = weatherMainScreenViewModel.weatherHourlyData.value
+            adapter = WeatherHourlyAdapter(dataList!!)
+            recyclerView.adapter = adapter
+        }
+
         weatherMainScreenViewModel.weatherDataUiState.observe(this) { state ->
+            Log.d("LoadingDebug", "MainActivity.Observer weatherDataUiState. Change in weatherDataUiState")
             when (state) {
                 is WeatherDataUiState.Loading -> {
+                    Log.d("LoadingDebug", "Activate showProgressBar")
                     showProgressBar()
                 }
 
                 is WeatherDataUiState.Success -> {
+                    Log.d("LoadingDebug", "Change weatherDataUiState to Success")
                     hideProgressBar()
                     state.data.let {
-                        getWeatherIcon(it.iconCode, this) { drawable ->
-                            weatherIcon.setImageDrawable(drawable)
-                        }
+                        weatherIcon.setImageDrawable(AppCompatResources.getDrawable(this, getWeatherIconId(it.iconCode)))
                         cityText.text = weatherMainScreenViewModel.locationData.value?.city
                         humidityText.text = this.getString(R.string.current_humidity, it.humidity)
                         windText.text = this.getString(R.string.current_wind, it.windSpeed)
@@ -303,43 +322,9 @@ class WeatherMainActivity : AppCompatActivity(),
         }
     }
 
-    private fun getWeatherIcon(iconCode: String, context: Context, callback: (Drawable?) -> Unit) {
-        val iconUrl = "$BASE_ICON_URL$iconCode$ICON_URL_POSTFIX"
 
-        Glide.with(context)
-            .load(iconUrl)
-            .into(object : CustomTarget<Drawable>() {
-                override fun onResourceReady(
-                    resource: Drawable,
-                    transition: Transition<in Drawable>?
-                ) {
-                    callback(resource)
-                }
 
-                override fun onLoadCleared(placeholder: Drawable?) {
-                }
 
-                override fun onLoadFailed(errorDrawable: Drawable?) {
-                    callback(
-                        AppCompatResources.getDrawable(context, R.drawable.weather_icon)
-                    )
-                }
-            })
-        }
-
-    private fun calculateTemperatureByUnit(temperature: Double, temperatureUnit: String): String {
-        return when (temperatureUnit) {
-            "Celsius" -> {
-                temperature.minus(272.15).roundToInt().toString()
-            }
-
-            "Fahrenheit" -> {
-                temperature.minus(272.15).times(9 / 5).plus(32).roundToInt().toString()
-            }
-
-            else -> throw IllegalArgumentException("Unsupported temperature unit")
-        }
-    }
 
     private fun calculatePressureByUnit(pressure: Double, pressureUnit: String): String {
         return when (pressureUnit) {
