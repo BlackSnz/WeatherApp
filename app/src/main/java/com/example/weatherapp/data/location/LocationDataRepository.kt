@@ -78,11 +78,14 @@ class LocationRepository @Inject constructor(
             fusedLocationProviderClient.getCurrentLocation(
                 Priority.PRIORITY_BALANCED_POWER_ACCURACY, null
             ).addOnSuccessListener { location ->
+                Log.d("LoadingDebug", "Get location in LocationDataRepositor - Success")
                 cont.resume(location)
             }.addOnFailureListener { exception ->
+                Log.d("LoadingDebug", "Get location in LocationDataRepositor - Failure")
                 cont.resumeWithException(exception)
             }
         } catch (e: SecurityException) {
+            Log.d("LoadingDebug", "Get location in LocationDataRepositor - SecurityException")
             cont.resumeWithException(e)
         }
     }

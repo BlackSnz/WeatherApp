@@ -5,14 +5,17 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.recyclerview.widget.RecyclerView
 import com.example.weatherapp.R
 import com.example.weatherapp.data.weather.HourlyForecastUnit
 import com.example.weatherapp.utils.TemperatureUtils.calculateTemperatureByUnit
 import com.example.weatherapp.utils.WeatherIconUtils.getWeatherIconId
 import java.util.Locale
+import kotlin.math.roundToInt
 
-class WeatherHourlyAdapter(private val hourlyForecastData: List<HourlyForecastUnit>) : RecyclerView.Adapter<WeatherHourlyAdapter.WeatherHourlyViewHolder>() {
+class WeatherHourlyAdapter(private val hourlyForecastData: List<HourlyForecastUnit>) :
+    RecyclerView.Adapter<WeatherHourlyAdapter.WeatherHourlyViewHolder>() {
 
     inner class WeatherHourlyViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val hourlyTemperature: TextView = itemView.findViewById(R.id.tvHourlyTemperature)
@@ -22,7 +25,8 @@ class WeatherHourlyAdapter(private val hourlyForecastData: List<HourlyForecastUn
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WeatherHourlyViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.hourly_weather_item, parent, false)
+        val view =
+            LayoutInflater.from(parent.context).inflate(R.layout.hourly_weather_item, parent, false)
         return WeatherHourlyViewHolder(view)
     }
 
@@ -32,12 +36,18 @@ class WeatherHourlyAdapter(private val hourlyForecastData: List<HourlyForecastUn
             hourlyForecastData[position].temperature.toDouble(),
             "Celsius"
         )
-        val hourlyTemperatureText = holder.itemView.context.getString(R.string.current_temperature_celcius, hourlyTemperatureInCelsius)
+        val hourlyTemperatureText = holder.itemView.context.getString(
+            R.string.current_temperature_celcius,
+            hourlyTemperatureInCelsius
+        )
         holder.hourlyTemperature.text = hourlyTemperatureText
         // Prepare text for hourly precipitation
         val precipitation = hourlyForecastData[position].precipitation
-        if(shouldDisplayPrecipitation(precipitation))  {
-            holder.hourlyPrecipitation.text = precipitation.toDouble().times(100).toString()
+        if (shouldDisplayPrecipitation(precipitation)) {
+            holder.hourlyPrecipitation.text = holder.itemView.context.getString(
+                R.string.precipitation_in_percent,
+                precipitation.toDouble().times(100).roundToInt().toString()
+            )
             holder.hourlyPrecipitation.visibility = View.VISIBLE
         } else {
             holder.hourlyPrecipitation.visibility = View.GONE

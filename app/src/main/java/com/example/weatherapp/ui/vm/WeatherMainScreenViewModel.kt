@@ -1,10 +1,13 @@
 package com.example.weatherapp.ui.vm
 
+import android.graphics.drawable.Drawable
 import android.util.Log
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.weatherapp.R
 import com.example.weatherapp.data.location.LocationDataRepository
 import com.example.weatherapp.data.location.LocationInfo
 import com.example.weatherapp.data.location.LocationResult
@@ -146,6 +149,25 @@ class WeatherMainScreenViewModel @Inject constructor(
             _weatherHourlyData.postValue(resultList)
         } else {
             _weatherHourlyData.postValue(null)
+        }
+    }
+
+    fun setDirectionIcon(currentDirection: String): Int {
+        when (currentDirection) {
+            "n" -> return R.drawable.
+
+            n_direction
+            "s" -> return R.drawable.s_direction
+            "e" -> return R.drawable.e_direction
+            "w" -> return R.drawable.w_direction
+            "ne" -> return R.drawable.ne_direction
+            "nw" -> return R.drawable.nw_direction
+            "se" -> return R.drawable.se_direction
+            "sw" -> return R.drawable.sw_direction
+            else -> {
+                Log.e("WeatherCardView", "Unknown direction: $currentDirection")
+                return R.drawable.n_direction
+            }
         }
     }
 

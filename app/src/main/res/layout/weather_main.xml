@@ -8,20 +8,6 @@
     android:padding="16dp"
     tools:context=".ui.screens.WeatherMainActivity">
 
-    <com.example.weatherapp.ui.view.WindCardView
-        android:id="@+id/windCardView"
-        style="@style/WindCardView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:visibility="invisible"
-        app:direction="se"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/rvHourlyForecast"
-        app:speedUnit="m/s"
-        app:speedValue="8"
-        tools:visibility="visible" />
-
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guidelineLeft"
         android:layout_width="wrap_content"
@@ -65,6 +51,7 @@
         app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintStart_toEndOf="@id/tvTemperature"
         app:layout_constraintTop_toTopOf="@id/tvTemperature"
+        tools:src="@drawable/weather_icon"
         tools:visibility="visible" />
 
     <!-- The minimum today temperature -->
@@ -249,5 +236,78 @@
         app:layout_constraintTop_toBottomOf="@id/tvMinTemperatureToday"
         app:layout_constraintStart_toStartOf="parent"
         android:layout_marginTop="20dp"/>
+
+    <!-- Wind information CardView -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cvWindInformation"
+        android:layout_width="160dp"
+        android:layout_height="140dp"
+        app:cardCornerRadius="20dp"
+        android:layout_marginTop="20dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/rvHourlyForecast">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_margin="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/tvWindCardHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:text="Wind information"
+                android:textColor="?android:attr/textColorSecondary"
+                android:textSize="14sp"
+                app:layout_constraintTop_toTopOf="@id/cvWindHeaderIcon"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintBottom_toBottomOf="@id/cvWindHeaderIcon"/>
+
+            <ImageView
+                android:id="@+id/cvWindHeaderIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/wind_header_icon"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"/>
+
+
+            <TextView
+                android:id="@+id/tvWindCardSpeedValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:textSize="40sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvWindCardHeader"
+                tools:text="8" />
+
+            <TextView
+                android:id="@+id/tvWindCardSpeedUnit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:layout_marginBottom="8dp"
+                android:fontFamily="sans-serif"
+                android:textColor="?android:attr/textColorSecondary"
+                android:textSize="14sp"
+                app:layout_constraintBottom_toBottomOf="@id/tvWindCardSpeedValue"
+                app:layout_constraintStart_toEndOf="@id/tvWindCardSpeedValue"
+                android:text="m/s" />
+
+            <ImageView
+                android:id="@+id/ivWindCardIcon"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:contentDescription="Wind icon"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvWindCardHeader"
+                tools:src="@drawable/n_direction" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.cardview.widget.CardView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

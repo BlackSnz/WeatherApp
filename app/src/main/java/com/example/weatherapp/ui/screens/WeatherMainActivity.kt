@@ -1,17 +1,14 @@
 package com.example.weatherapp.ui.screens
 
 import android.Manifest
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityCompat
@@ -20,9 +17,6 @@ import androidx.fragment.app.DialogFragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.transition.Transition
 import com.example.weatherapp.R
 import com.example.weatherapp.databinding.WeatherMainBinding
 import com.example.weatherapp.ui.fragments.RequestLocationPermissionDialogFragment
@@ -35,8 +29,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlin.math.roundToInt
 
 const val LOCAL_PERMISSION_REQUEST_CODE = 1
-private const val BASE_ICON_URL = "https://openweathermap.org/img/wn/"
-private const val ICON_URL_POSTFIX = "@2x.png"
 
 @AndroidEntryPoint
 class WeatherMainActivity : AppCompatActivity(),
@@ -57,6 +49,7 @@ class WeatherMainActivity : AppCompatActivity(),
         val cityText = binding.tvCity
 
         // Values for the current weather
+
         val weatherTemperatureText = binding.tvTemperature
         val weatherIcon = binding.ivWeatherIcon
         val humidityText = binding.tvHumidityInfo
@@ -69,7 +62,9 @@ class WeatherMainActivity : AppCompatActivity(),
         val progressBar = binding.pbWeatherDataLoading
 
         // Values for the wind information
-        val windCard = binding.windCardView
+        val windCard = binding.cvWindInformation
+        val textSpeedWindCard = binding.tvWindCardSpeedValue
+        val iconDirectionWindCard = binding.ivWindCardIcon
 
         // Settings icon
         val settingsIcon = binding.ivSettings
@@ -86,7 +81,8 @@ class WeatherMainActivity : AppCompatActivity(),
 
         // RecyclerView for Hourly Forecast
         val recyclerView = findViewById<RecyclerView>(R.id.rvHourlyForecast)
-        recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        recyclerView.layoutManager =
+            LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
 
         fun showProgressBar() {
             cityText.visibility = View.INVISIBLE
@@ -147,7 +143,10 @@ class WeatherMainActivity : AppCompatActivity(),
         }
 
         weatherMainScreenViewModel.weatherDataUiState.observe(this) { state ->
-            Log.d("LoadingDebug", "MainActivity.Observer weatherDataUiState. Change in weatherDataUiState")
+            Log.d(
+                "LoadingDebug",
+                "MainActivity.Observer weatherDataUiState. Change in weatherDataUiState"
+            )
             when (state) {
                 is WeatherDataUiState.Loading -> {
                     Log.d("LoadingDebug", "Activate showProgressBar")
@@ -158,7 +157,12 @@ class WeatherMainActivity : AppCompatActivity(),
                     Log.d("LoadingDebug", "Change weatherDataUiState to Success")
                     hideProgressBar()
                     state.data.let {
-                        weatherIcon.setImageDrawable(AppCompatResources.getDrawable(this, getWeatherIconId(it.iconCode)))
+                        weatherIcon.setImageDrawable(
+                            AppCompatResources.getDrawable(
+                                this,
+                                getWeatherIconId(it.iconCode)
+                            )
+                        )
                         cityText.text = weatherMainScreenViewModel.locationData.value?.city
                         humidityText.text = this.getString(R.string.current_humidity, it.humidity)
                         windText.text = this.getString(R.string.current_wind, it.windSpeed)
@@ -269,11 +273,14 @@ class WeatherMainActivity : AppCompatActivity(),
                                     )
                             }
                         }
+
                         // Update information about wind
-                        windCard.updateWindCard(
-                            speed = it.windSpeed,
-                            "m/s",
-                            direction = it.windDegrees
+                        textSpeedWindCard.text = it.windSpeed
+                        iconDirectionWindCard.setImageDrawable(
+                            AppCompatResources.getDrawable(
+                                this,
+                                weatherMainScreenViewModel.setDirectionIcon(it.windDegrees)
+                            )
                         )
                     }
                 }

@@ -14,6 +14,9 @@
     <string name="current_wind">%1$s m/s</string>
     <string name="current_pressure_hpa">%1$s hPa</string>
     <string name="current_pressure_mmHg">%1$s mmHg</string>
+    
+    <!-- Hourly Forecast -->
+    <string name="precipitation_in_percent">%1$s%%</string>
 
     <!-- Settings string -->
     <!-- Массив единиц температуры -->
