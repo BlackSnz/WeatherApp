@@ -89,6 +89,8 @@ dependencies {
     // Coroutines work with Task
     implementation(libs.kotlinx.coroutines.play.services)
 
+    // Lottie animations
+    implementation("com.airbnb.android:lottie:3.5.0")
 
     testImplementation(libs.junit)
     testImplementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.test2)

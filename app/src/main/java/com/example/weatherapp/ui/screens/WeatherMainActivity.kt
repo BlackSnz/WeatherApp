@@ -17,6 +17,7 @@ import androidx.fragment.app.DialogFragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.airbnb.lottie.LottieAnimationView
 import com.example.weatherapp.R
 import com.example.weatherapp.databinding.WeatherMainBinding
 import com.example.weatherapp.ui.fragments.RequestLocationPermissionDialogFragment
@@ -45,26 +46,34 @@ class WeatherMainActivity : AppCompatActivity(),
         setContentView(binding.root)
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
 
+        val weatherLoadingAnimation = findViewById<LottieAnimationView>(R.id.lottieAnimationView)
+
         // Values for the current location
         val cityText = binding.tvCity
 
         // Values for the current weather
-
         val weatherTemperatureText = binding.tvTemperature
         val weatherIcon = binding.ivWeatherIcon
-        val humidityText = binding.tvHumidityInfo
-        val windText = binding.tvWindInfo
-        val pressureText = binding.tvPressureInfo
         val minWeatherTemperatureText = binding.tvMinTemperatureToday
         val maxWeatherTemperatureText = binding.tvMaxTemperatureToday
         val feelsLikeTemperatureText = binding.tvFeelsLikeToday
         val weatherDescriptionText = binding.tvWeatherDescription
-        val progressBar = binding.pbWeatherDataLoading
 
-        // Values for the wind information
+        // Weather loading states values
+        val errorMessage = binding.clLoadingError
+
+        // CARD VIEWS
+        // Values for the wind card information
         val windCard = binding.cvWindInformation
         val textSpeedWindCard = binding.tvWindCardSpeedValue
         val iconDirectionWindCard = binding.ivWindCardIcon
+        // Values for the humidity card information
+        val humidityCard = binding.cvHumidityInformation
+        val textHumidityValue = binding.tvHumidityValue
+        // Values for the pressure card information
+        val pressureCard = binding.cvPressureInformation
+        val pressureValue = binding.tvPressureValue
+        val pressureUnitCard = binding.tvPressureUnit
 
         // Settings icon
         val settingsIcon = binding.ivSettings
@@ -79,12 +88,20 @@ class WeatherMainActivity : AppCompatActivity(),
             weatherMainScreenViewModel.getWeatherInformation()
         }
 
+        // CardView for Hourly Forecast
+        val hourlyForecastCard = binding.cvHourlyForecast
         // RecyclerView for Hourly Forecast
         val recyclerView = findViewById<RecyclerView>(R.id.rvHourlyForecast)
         recyclerView.layoutManager =
             LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
 
         fun showProgressBar() {
+            weatherLoadingAnimation.visibility = View.VISIBLE
+            pressureCard.visibility = View.INVISIBLE
+            humidityCard.visibility = View.INVISIBLE
+            hourlyForecastCard.visibility = View.INVISIBLE
+            errorMessage.visibility = View.INVISIBLE
+            weatherLoadingAnimation.playAnimation()
             cityText.visibility = View.INVISIBLE
             weatherTemperatureText.visibility = View.INVISIBLE
             weatherIcon.visibility = View.INVISIBLE
@@ -93,11 +110,14 @@ class WeatherMainActivity : AppCompatActivity(),
             weatherDescriptionText.visibility = View.INVISIBLE
             feelsLikeTemperatureText.visibility = View.INVISIBLE
             windCard.visibility = View.INVISIBLE
-            progressBar.visibility = View.VISIBLE
         }
 
         fun hideProgressBar() {
-            progressBar.visibility = View.GONE
+            weatherLoadingAnimation.visibility = View.INVISIBLE
+            pressureCard.visibility = View.VISIBLE
+            weatherLoadingAnimation.playAnimation()
+            humidityCard.visibility = View.VISIBLE
+            hourlyForecastCard.visibility = View.VISIBLE
             cityText.visibility = View.VISIBLE
             weatherTemperatureText.visibility = View.VISIBLE
             weatherIcon.visibility = View.VISIBLE
@@ -136,12 +156,6 @@ class WeatherMainActivity : AppCompatActivity(),
         }
 
         // Observers
-        weatherMainScreenViewModel.weatherHourlyData.observe(this) {
-            val dataList = weatherMainScreenViewModel.weatherHourlyData.value
-            adapter = WeatherHourlyAdapter(dataList!!)
-            recyclerView.adapter = adapter
-        }
-
         weatherMainScreenViewModel.weatherDataUiState.observe(this) { state ->
             Log.d(
                 "LoadingDebug",
@@ -153,7 +167,14 @@ class WeatherMainActivity : AppCompatActivity(),
                     showProgressBar()
                 }
 
+                is WeatherDataUiState.Error -> {
+                    weatherLoadingAnimation.visibility = View.INVISIBLE
+                    errorMessage.visibility = View.VISIBLE
+                }
                 is WeatherDataUiState.Success -> {
+                    val dataList = weatherMainScreenViewModel.weatherHourlyData.value
+                    adapter = WeatherHourlyAdapter(dataList!!)
+                    recyclerView.adapter = adapter
                     Log.d("LoadingDebug", "Change weatherDataUiState to Success")
                     hideProgressBar()
                     state.data.let {
@@ -164,8 +185,7 @@ class WeatherMainActivity : AppCompatActivity(),
                             )
                         )
                         cityText.text = weatherMainScreenViewModel.locationData.value?.city
-                        humidityText.text = this.getString(R.string.current_humidity, it.humidity)
-                        windText.text = this.getString(R.string.current_wind, it.windSpeed)
+                        textHumidityValue.text = this.getString(R.string.current_humidity, it.humidity)
                         weatherDescriptionText.text = it.weatherDescription
                         // Checking the temperature unit and set text for the temperature
                         val temperatureUnit =
@@ -245,14 +265,14 @@ class WeatherMainActivity : AppCompatActivity(),
                                     )
                             }
 
-                            else -> {}
                         }
 
                         // Checking the pressure unit and set text for the pressure
                         val pressureUnit = sharedPreferences.getString("pressure_unit", "mmHg")
                         when (pressureUnit) {
                             "hPa" -> {
-                                pressureText.text =
+                                pressureUnitCard.text = "hPa"
+                                pressureValue.text =
                                     this.getString(
                                         R.string.current_pressure_hpa,
                                         calculatePressureByUnit(
@@ -263,7 +283,8 @@ class WeatherMainActivity : AppCompatActivity(),
                             }
 
                             "mmHg" -> {
-                                pressureText.text =
+                                pressureUnitCard.text = "mmHg"
+                                pressureValue.text =
                                     this.getString(
                                         R.string.current_pressure_mmHg,
                                         calculatePressureByUnit(
@@ -328,10 +349,6 @@ class WeatherMainActivity : AppCompatActivity(),
             }
         }
     }
-
-
-
-
 
     private fun calculatePressureByUnit(pressure: Double, pressureUnit: String): String {
         return when (pressureUnit) {

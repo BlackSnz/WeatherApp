@@ -15,8 +15,10 @@ import com.example.weatherapp.data.weather.HourlyForecastUnit
 import com.example.weatherapp.data.weather.WeatherDataRepository
 import com.example.weatherapp.data.weather.WeatherUiData
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.math.roundToInt
@@ -42,63 +44,68 @@ class WeatherMainScreenViewModel @Inject constructor(
     private val _weatherHourlyData = MutableLiveData<MutableList<HourlyForecastUnit>?>()
     val weatherHourlyData: LiveData<MutableList<HourlyForecastUnit>?> = _weatherHourlyData
 
+    private var weatherLoadingJob: Job? = null
+
     // Function for all async operation which fetch necessary information about the main weather parameters
     // First, load the information about the location, then use received information (latitude, longitude)
     // get weather data from the server.
     fun getWeatherInformation() {
-        viewModelScope.launch(Dispatchers.IO) {
+        weatherLoadingJob?.cancel()
+        weatherLoadingJob = viewModelScope.launch(Dispatchers.IO) {
             Log.d("LoadingDebug", "invoke getWeatherInformation in VM")
             _weatherDataUiState.postValue(WeatherDataUiState.Loading)
             Log.d("LoadingDebug", "Change weatherDataUiState to Loading")
-            when (val locationResult = locationRepository.getCurrentLocation()) {
-                is LocationResult.Error -> {
-                    Log.d("LoadingDebug", "Change weatherDataUiState to Error")
-                    _weatherDataUiState.postValue(WeatherDataUiState.Error(locationResult.message))
-                }
-
-                is LocationResult.OnlyCoordinates -> {
-                    Log.d("LoadingDebug", "Change weatherDataUiState to Success (Only Coords)")
-                    _locationData.postValue(
-                        LocationInfo(
-                            locationResult.data.latitude,
-                            locationResult.data.longitude,
-                            null,
-                            null
-                        )
-                    )
-                    val weatherData = getWeatherData(locationResult.data.latitude, locationResult.data.longitude)
-                    Log.d("LoadingDebug", "Weather data: ${weatherData}")
-                    if(weatherData != null) {
-                        Log.d("LoadingDebug", "Change weatherDataUiState to Success")
-                        _weatherDataUiState.postValue(WeatherDataUiState.Success(weatherData))
-                    } else {
-                        _weatherDataUiState.postValue(WeatherDataUiState.Error("Can't get weather data"))
+            try {
+                when (val locationResult = locationRepository.getCurrentLocation()) {
+                    is LocationResult.Error -> {
+                        Log.d("LoadingDebug", "Change weatherDataUiState to Error")
+                        _weatherDataUiState.postValue(WeatherDataUiState.Error(locationResult.message))
                     }
-                    getHourlyForecastData(locationResult.data.latitude, locationResult.data.longitude)
 
-                }
-
-                is LocationResult.Success -> {
-                    _locationData.postValue(
-                        LocationInfo(
-                            locationResult.data.latitude,
-                            locationResult.data.longitude,
-                            locationResult.data.city,
-                            locationResult.data.country
+                    is LocationResult.OnlyCoordinates -> {
+                        Log.d("LoadingDebug", "Change weatherDataUiState to Success (Only Coords)")
+                        _locationData.postValue(
+                            LocationInfo(
+                                locationResult.data.latitude,
+                                locationResult.data.longitude,
+                                null,
+                                null
+                            )
                         )
-                    )
-                    val weatherData = getWeatherData(locationResult.data.latitude, locationResult.data.longitude)
-                    Log.d("LoadingDebug", "Weather data: ${weatherData}")
-                    if(weatherData != null) {
-                        Log.d("LoadingDebug", "Change weatherDataUiState to Success")
-                        _weatherDataUiState.postValue(WeatherDataUiState.Success(weatherData))
-                    } else {
-                        _weatherDataUiState.postValue(WeatherDataUiState.Error("Can't get weather data"))
+                        val weatherData = getWeatherData(locationResult.data.latitude, locationResult.data.longitude)
+                        getHourlyForecastData(locationResult.data.latitude, locationResult.data.longitude)
+                        Log.d("LoadingDebug", "Weather data: ${weatherData}")
+                        if(weatherData != null) {
+                            Log.d("LoadingDebug", "Change weatherDataUiState to Success")
+                            _weatherDataUiState.postValue(WeatherDataUiState.Success(weatherData))
+                        } else {
+                            _weatherDataUiState.postValue(WeatherDataUiState.Error("Can't get weather data"))
+                        }
+
                     }
-                    getHourlyForecastData(locationResult.data.latitude, locationResult.data.longitude)
 
-
+                    is LocationResult.Success -> {
+                        _locationData.postValue(
+                            LocationInfo(
+                                locationResult.data.latitude,
+                                locationResult.data.longitude,
+                                locationResult.data.city,
+                                locationResult.data.country
+                            )
+                        )
+                        val weatherData = getWeatherData(locationResult.data.latitude, locationResult.data.longitude)
+                        getHourlyForecastData(locationResult.data.latitude, locationResult.data.longitude)
+                        Log.d("LoadingDebug", "Weather data: ${weatherData}")
+                        if(weatherData != null) {
+                            Log.d("LoadingDebug", "Change weatherDataUiState to Success")
+                            _weatherDataUiState.postValue(WeatherDataUiState.Success(weatherData))
+                        } else {
+                            _weatherDataUiState.postValue(WeatherDataUiState.Error("Can't get weather data"))
+                        }
+                    }
                 }
+            } catch (e: CancellationException) {
+                Log.d("CancelLoading", "Cancellation weatherLoading Job")
             }
         }
     }
