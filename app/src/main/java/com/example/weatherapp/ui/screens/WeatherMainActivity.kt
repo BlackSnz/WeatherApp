@@ -44,6 +44,9 @@ class WeatherMainActivity : AppCompatActivity(),
         enableEdgeToEdge()
         binding = WeatherMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        Log.d("DebugOnCreate", "OnCreate invoke()")
+
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
 
         val weatherLoadingAnimation = findViewById<LottieAnimationView>(R.id.lottieAnimationView)

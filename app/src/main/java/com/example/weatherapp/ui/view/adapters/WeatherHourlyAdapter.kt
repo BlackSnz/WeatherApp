@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.weatherapp.R
 import com.example.weatherapp.data.weather.HourlyForecastUnit
@@ -32,15 +33,35 @@ class WeatherHourlyAdapter(private val hourlyForecastData: List<HourlyForecastUn
 
     override fun onBindViewHolder(holder: WeatherHourlyViewHolder, position: Int) {
         // Prepare text for hourly temperature
-        val hourlyTemperatureInCelsius = calculateTemperatureByUnit(
-            hourlyForecastData[position].temperature.toDouble(),
-            "Celsius"
-        )
-        val hourlyTemperatureText = holder.itemView.context.getString(
-            R.string.current_temperature_celcius,
-            hourlyTemperatureInCelsius
-        )
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(holder.itemView.context)
+        val temperatureUnit =
+            sharedPreferences.getString("temperature_unit", "Celsius")
+        var hourlyTemperatureText =  ""
+        when(temperatureUnit) {
+            "Celsius" -> {
+                val hourlyTemperature = calculateTemperatureByUnit(
+                    hourlyForecastData[position].temperature.toDouble(),
+                    "Celsius"
+                )
+                hourlyTemperatureText = holder.itemView.context.getString(
+                    R.string.current_temperature_celcius,
+                    hourlyTemperature
+                )
+            }
+
+            "Fahrenheit" -> {
+                val hourlyTemperature = calculateTemperatureByUnit(
+                    hourlyForecastData[position].temperature.toDouble(),
+                    "Fahrenheit"
+                )
+                hourlyTemperatureText = holder.itemView.context.getString(
+                    R.string.current_temperature_fahrenheit,
+                    hourlyTemperature
+                )
+            }
+        }
         holder.hourlyTemperature.text = hourlyTemperatureText
+
         // Prepare text for hourly precipitation
         val precipitation = hourlyForecastData[position].precipitation
         if (shouldDisplayPrecipitation(precipitation)) {

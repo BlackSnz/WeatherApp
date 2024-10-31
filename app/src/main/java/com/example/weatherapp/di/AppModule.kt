@@ -3,8 +3,12 @@ package com.example.weatherapp.di
 import android.location.Geocoder
 import com.example.weatherapp.data.location.LocationDataRepository
 import com.example.weatherapp.data.location.LocationRepository
-import com.example.weatherapp.data.weather.NetworkWeatherDataRepository
-import com.example.weatherapp.data.weather.WeatherDataRepository
+import com.example.weatherapp.data.weather.RemoteWeatherDataSourceImpl
+import com.example.weatherapp.data.weather.RemoteWeatherDataSource
+import com.example.weatherapp.data.weather.WeatherDao
+import com.example.weatherapp.data.weather.WeatherData
+import com.example.weatherapp.data.weather.WeatherRepository
+import com.example.weatherapp.data.weather.WeatherRepositoryImpl
 import com.example.weatherapp.network.WeatherApiService
 import com.google.android.gms.location.FusedLocationProviderClient
 import dagger.Module
@@ -35,17 +39,30 @@ class AppModule {
         return retrofit.create(WeatherApiService::class.java)
     }
 
+    // Provide RemoteWeatherDataSource
+    @Provides
+    @Singleton
+    fun provideRemoteWeatherDataSource(apiService: WeatherApiService): RemoteWeatherDataSource {
+        return RemoteWeatherDataSourceImpl(apiService)
+    }
+
     // Provide WeatherDataRepository
     @Provides
     @Singleton
-    fun provideWeatherDataRepository(apiService: WeatherApiService): WeatherDataRepository {
-        return NetworkWeatherDataRepository(apiService)
+    fun provideWeatherDataRepository(
+        localWeatherDataSource: WeatherDao,
+        remoteDataSource: RemoteWeatherDataSource
+    ): WeatherRepository {
+        return WeatherRepositoryImpl(localWeatherDataSource, remoteDataSource)
     }
 
     // Provide LocationDataRepository
     @Provides
     @Singleton
-    fun provideLocationDataRepository(fusedLocationProviderClient: FusedLocationProviderClient, geocoder: Geocoder): LocationDataRepository {
+    fun provideLocationDataRepository(
+        fusedLocationProviderClient: FusedLocationProviderClient,
+        geocoder: Geocoder
+    ): LocationDataRepository {
         return LocationRepository(fusedLocationProviderClient, geocoder)
     }
 }

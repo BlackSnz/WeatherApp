@@ -92,6 +92,18 @@ dependencies {
     // Lottie animations
     implementation("com.airbnb.android:lottie:3.5.0")
 
+    // Room
+    val room_version = "2.6.1"
+
+    implementation("androidx.room:room-runtime:$room_version")
+    annotationProcessor("androidx.room:room-compiler:$room_version")
+
+    // To use Kotlin annotation processing tool (kapt)
+    kapt("androidx.room:room-compiler:$room_version")
+
+    // optional - Kotlin Extensions and Coroutines support for Room
+    implementation("androidx.room:room-ktx:$room_version")
+
     testImplementation(libs.junit)
     testImplementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.test2)
     testImplementation(libs.org.mockito.mockito.core2)

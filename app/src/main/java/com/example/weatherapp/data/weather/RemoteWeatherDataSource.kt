@@ -11,16 +11,16 @@ import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-interface WeatherDataRepository {
-    suspend fun getWeatherData(latitude: Double, longitude: Double): CurrentWeatherResponse?
+interface RemoteWeatherDataSource {
+    suspend fun fetchWeatherData(latitude: Double, longitude: Double): WeatherData?
     suspend fun getWeatherHourlyForecast(latitude: Double, longitude: Double) : WeatherForecastResponse?
 }
 
-class NetworkWeatherDataRepository @Inject constructor(
+class RemoteWeatherDataSourceImpl @Inject constructor(
     private val weatherApiService: WeatherApiService
-) : WeatherDataRepository {
+) : RemoteWeatherDataSource {
 
-    override suspend fun getWeatherData(latitude: Double, longitude: Double): CurrentWeatherResponse? {
+    override suspend fun fetchWeatherData(latitude: Double, longitude: Double): WeatherData? {
         Log.d("LoadingDebug", "invoke getWeatherData in Repository")
         return suspendCancellableCoroutine { continuation ->
             val call = weatherApiService.getCurrentWeatherData(latitude, longitude)
@@ -31,7 +31,26 @@ class NetworkWeatherDataRepository @Inject constructor(
                 ) {
                     if (response.isSuccessful) {
                         Log.d("LoadingDebug", "Response is successful")
-                        continuation.resume(response.body())
+                        continuation.resume(
+                            response.body()?.let {
+                                WeatherData(
+                                    id = 0,
+                                    currentTemperature = it.main.temp,
+                                    minTemperatureToday = it.main.temp_min,
+                                    maxTemperatureToday = it.main.temp_max,
+                                    feelsLikeTemperature = it.main.feels_like,
+                                    weatherDescription = it.weather[0].description,
+                                    iconCode = it.weather[0].icon,
+                                    humidity = it.main.humidity,
+                                    windSpeed = it.wind.speed,
+                                    windDegrees = it.wind.deg,
+                                    windGust = it.wind.gust,
+                                    pressure = it.main.pressure,
+                                    lastUpdated = System.currentTimeMillis(),
+                                    cityName = it.name
+                                )
+                            }
+                        )
                     } else {
                         Log.d("LoadingDebug", "Response is not successful")
                         continuation.resume(null)

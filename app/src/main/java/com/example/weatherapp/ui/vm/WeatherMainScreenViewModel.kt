@@ -1,8 +1,6 @@
 package com.example.weatherapp.ui.vm
 
-import android.graphics.drawable.Drawable
 import android.util.Log
-import androidx.appcompat.content.res.AppCompatResources
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -12,7 +10,8 @@ import com.example.weatherapp.data.location.LocationDataRepository
 import com.example.weatherapp.data.location.LocationInfo
 import com.example.weatherapp.data.location.LocationResult
 import com.example.weatherapp.data.weather.HourlyForecastUnit
-import com.example.weatherapp.data.weather.WeatherDataRepository
+import com.example.weatherapp.data.weather.RemoteWeatherDataSource
+import com.example.weatherapp.data.weather.WeatherRepository
 import com.example.weatherapp.data.weather.WeatherUiData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
@@ -31,7 +30,7 @@ sealed interface WeatherDataUiState {
 
 @HiltViewModel
 class WeatherMainScreenViewModel @Inject constructor(
-    private val weatherDataRepository: WeatherDataRepository,
+    private val weatherRepository: WeatherRepository,
     private val locationRepository: LocationDataRepository
 ) : ViewModel() {
 
@@ -72,10 +71,16 @@ class WeatherMainScreenViewModel @Inject constructor(
                                 null
                             )
                         )
-                        val weatherData = getWeatherData(locationResult.data.latitude, locationResult.data.longitude)
-                        getHourlyForecastData(locationResult.data.latitude, locationResult.data.longitude)
+                        val weatherData = getWeatherData(
+                            locationResult.data.latitude,
+                            locationResult.data.longitude
+                        )
+                        getHourlyForecastData(
+                            locationResult.data.latitude,
+                            locationResult.data.longitude
+                        )
                         Log.d("LoadingDebug", "Weather data: ${weatherData}")
-                        if(weatherData != null) {
+                        if (weatherData != null) {
                             Log.d("LoadingDebug", "Change weatherDataUiState to Success")
                             _weatherDataUiState.postValue(WeatherDataUiState.Success(weatherData))
                         } else {
@@ -93,10 +98,16 @@ class WeatherMainScreenViewModel @Inject constructor(
                                 locationResult.data.country
                             )
                         )
-                        val weatherData = getWeatherData(locationResult.data.latitude, locationResult.data.longitude)
-                        getHourlyForecastData(locationResult.data.latitude, locationResult.data.longitude)
+                        val weatherData = getWeatherData(
+                            locationResult.data.latitude,
+                            locationResult.data.longitude
+                        )
+                        getHourlyForecastData(
+                            locationResult.data.latitude,
+                            locationResult.data.longitude
+                        )
                         Log.d("LoadingDebug", "Weather data: ${weatherData}")
-                        if(weatherData != null) {
+                        if (weatherData != null) {
                             Log.d("LoadingDebug", "Change weatherDataUiState to Success")
                             _weatherDataUiState.postValue(WeatherDataUiState.Success(weatherData))
                         } else {
@@ -113,36 +124,37 @@ class WeatherMainScreenViewModel @Inject constructor(
     // Transform data from the repository to the ui layer data
     private suspend fun getWeatherData(latitude: Double, longitude: Double): WeatherUiData? {
         Log.d("LoadingDebug", "invoke getWeatherData in VM")
-        val result = weatherDataRepository.getWeatherData(latitude, longitude)
-        Log.d("LoadingDebug", "Get weather data from repository. Result: ${result}")
+        val weatherData = weatherRepository.getWeatherData(latitude, longitude)
+        Log.d("LoadingDebug", "Get weather data from repository. Result: ${weatherRepository}")
         val weatherUiData = CompletableDeferred<WeatherUiData?>()
-        if (result != null) {
+        if (weatherData != null) {
             Log.d("LoadingDebug", "Weather data is not null")
             weatherUiData.complete(
                 WeatherUiData(
-                    currentTemperature = result.main.temp.toString(),
-                    minTemperatureToday = result.main.temp_min.toString(),
-                    maxTemperatureToday = result.main.temp_max.toString(),
-                    feelsLikeTemperature = result.main.feels_like.toString(),
-                    weatherDescription = result.weather[0].description.replaceFirstChar { char -> char.uppercase() },
-                    humidity = result.main.humidity.toString(),
-                    windSpeed = result.wind.speed.roundToInt().toString(),
-                    pressure = result.main.pressure.toString(),
-                    windDegrees = getWindDirectionCode(result.wind.deg) ?: "n",
-                    windGust = result.wind.gust.toString(),
-                    iconCode = result.weather[0].icon
+                    currentTemperature = weatherData.currentTemperature.toString(),
+                    minTemperatureToday = weatherData.minTemperatureToday.toString(),
+                    maxTemperatureToday = weatherData.maxTemperatureToday.toString(),
+                    feelsLikeTemperature = weatherData.feelsLikeTemperature.toString(),
+                    weatherDescription = weatherData.weatherDescription.replaceFirstChar { char -> char.uppercase() },
+                    humidity = weatherData.humidity.toString(),
+                    windSpeed = weatherData.windSpeed.roundToInt().toString(),
+                    pressure = weatherData.pressure.toString(),
+                    windDegrees = weatherData.windDegrees.toString(),
+                    windGust = weatherData.windGust.toString(),
+                    iconCode = weatherData.iconCode
                 )
             )
-        } else {
-            Log.d("LoadingDebug", "Weather data is null")
-            weatherUiData.complete(null)
-        }
-        return weatherUiData.await()
+    } else {
+        Log.d("LoadingDebug", "Weather data is null")
+        weatherUiData.complete(null)
     }
+    return weatherUiData.await()
+}
 
-    private suspend fun getHourlyForecastData(latitude: Double, longitude: Double) {
-        val hourlyForecastResponse = weatherDataRepository.getWeatherHourlyForecast(latitude, longitude)
-        if (hourlyForecastResponse != null) {
+private suspend fun getHourlyForecastData(latitude: Double, longitude: Double) {
+    val hourlyForecastResponse =
+        weatherRepository.getHourlyWeatherForecast(latitude, longitude)
+    if (hourlyForecastResponse != null) {
         val resultList: MutableList<HourlyForecastUnit> = mutableListOf()
         hourlyForecastResponse.list.take(9).forEach { item ->
             val hourlyForecastUnit = HourlyForecastUnit(
@@ -152,49 +164,47 @@ class WeatherMainScreenViewModel @Inject constructor(
                 time = item.dt.toString()
             )
             resultList.add(hourlyForecastUnit)
-            }
-            _weatherHourlyData.postValue(resultList)
-        } else {
-            _weatherHourlyData.postValue(null)
+        }
+        _weatherHourlyData.postValue(resultList)
+    } else {
+        _weatherHourlyData.postValue(null)
+    }
+}
+
+fun setDirectionIcon(currentDirection: String): Int {
+    when (currentDirection) {
+        "n" -> return R.drawable.n_direction
+        "s" -> return R.drawable.s_direction
+        "e" -> return R.drawable.e_direction
+        "w" -> return R.drawable.w_direction
+        "ne" -> return R.drawable.ne_direction
+        "nw" -> return R.drawable.nw_direction
+        "se" -> return R.drawable.se_direction
+        "sw" -> return R.drawable.sw_direction
+        else -> {
+            Log.e("WeatherCardView", "Unknown direction: $currentDirection")
+            return R.drawable.n_direction
         }
     }
+}
 
-    fun setDirectionIcon(currentDirection: String): Int {
-        when (currentDirection) {
-            "n" -> return R.drawable.
-
-            n_direction
-            "s" -> return R.drawable.s_direction
-            "e" -> return R.drawable.e_direction
-            "w" -> return R.drawable.w_direction
-            "ne" -> return R.drawable.ne_direction
-            "nw" -> return R.drawable.nw_direction
-            "se" -> return R.drawable.se_direction
-            "sw" -> return R.drawable.sw_direction
-            else -> {
-                Log.e("WeatherCardView", "Unknown direction: $currentDirection")
-                return R.drawable.n_direction
-            }
+private fun getWindDirectionCode(windDegrees: Int): String? {
+    return when (windDegrees) {
+        in 0..44 -> "n"
+        in 45..89 -> "ne"
+        in 90..134 -> "e"
+        in 135..179 -> "se"
+        in 180..224 -> "s"
+        in 225..269 -> "sw"
+        in 270..314 -> "w"
+        in 315..359 -> "nw"
+        360 -> "n"
+        else -> {
+            Log.d("WeatherViewModel", "Unknown wind direction: $windDegrees")
+            return null
         }
     }
-
-    private fun getWindDirectionCode(windDegrees: Int): String? {
-        return when (windDegrees) {
-            in 0..44 -> "n"
-            in 45..89 -> "ne"
-            in 90..134 -> "e"
-            in 135..179 -> "se"
-            in 180..224 -> "s"
-            in 225..269 -> "sw"
-            in 270..314 -> "w"
-            in 315..359 -> "nw"
-            360 -> "n"
-            else -> {
-                Log.d("WeatherViewModel", "Unknown wind direction: $windDegrees")
-                return null
-            }
-        }
-    }
+}
 }
 
 
