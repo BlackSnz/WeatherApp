@@ -10,7 +10,6 @@ import com.example.weatherapp.data.location.LocationDataRepository
 import com.example.weatherapp.data.location.LocationInfo
 import com.example.weatherapp.data.location.LocationResult
 import com.example.weatherapp.data.weather.HourlyForecastUnit
-import com.example.weatherapp.data.weather.RemoteWeatherDataSource
 import com.example.weatherapp.data.weather.WeatherRepository
 import com.example.weatherapp.data.weather.WeatherUiData
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -124,7 +123,7 @@ class WeatherMainScreenViewModel @Inject constructor(
     // Transform data from the repository to the ui layer data
     private suspend fun getWeatherData(latitude: Double, longitude: Double): WeatherUiData? {
         Log.d("LoadingDebug", "invoke getWeatherData in VM")
-        val weatherData = weatherRepository.getWeatherData(latitude, longitude)
+        val weatherData = weatherRepository.getDailyWeatherData(latitude, longitude)
         Log.d("LoadingDebug", "Get weather data from repository. Result: ${weatherRepository}")
         val weatherUiData = CompletableDeferred<WeatherUiData?>()
         if (weatherData != null) {
@@ -152,16 +151,16 @@ class WeatherMainScreenViewModel @Inject constructor(
 }
 
 private suspend fun getHourlyForecastData(latitude: Double, longitude: Double) {
-    val hourlyForecastResponse =
-        weatherRepository.getHourlyWeatherForecast(latitude, longitude)
-    if (hourlyForecastResponse != null) {
+    val hourlyForecastData =
+        weatherRepository.getHourlyWeatherForecastData(latitude, longitude)
+    if (hourlyForecastData != null) {
         val resultList: MutableList<HourlyForecastUnit> = mutableListOf()
-        hourlyForecastResponse.list.take(9).forEach { item ->
+        hourlyForecastData.forEach { item ->
             val hourlyForecastUnit = HourlyForecastUnit(
-                temperature = item.main.temp.toString(),
-                iconCode = item.weather[0].icon,
-                precipitation = item.pop.toString(),
-                time = item.dt.toString()
+                temperature = item.temperature.toString(),
+                iconCode = item.iconCode,
+                precipitation = item.precipitation.toString(),
+                time = item.time.toString()
             )
             resultList.add(hourlyForecastUnit)
         }

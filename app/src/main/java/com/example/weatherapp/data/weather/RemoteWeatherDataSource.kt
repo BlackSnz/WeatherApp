@@ -1,6 +1,10 @@
 package com.example.weatherapp.data.weather
 
 import android.util.Log
+import com.example.weatherapp.data.weather.database.DailyWeatherData
+import com.example.weatherapp.data.weather.database.HourlyForecastData
+import com.example.weatherapp.data.weather.responses.CurrentWeatherResponse
+import com.example.weatherapp.data.weather.responses.WeatherForecastResponse
 import com.example.weatherapp.network.WeatherApiService
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -12,15 +16,15 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 interface RemoteWeatherDataSource {
-    suspend fun fetchWeatherData(latitude: Double, longitude: Double): WeatherData?
-    suspend fun getWeatherHourlyForecast(latitude: Double, longitude: Double) : WeatherForecastResponse?
+    suspend fun fetchWeatherData(latitude: Double, longitude: Double): DailyWeatherData?
+    suspend fun fetchWeatherHourlyForecast(latitude: Double, longitude: Double): List<HourlyForecastData>?
 }
 
 class RemoteWeatherDataSourceImpl @Inject constructor(
     private val weatherApiService: WeatherApiService
 ) : RemoteWeatherDataSource {
 
-    override suspend fun fetchWeatherData(latitude: Double, longitude: Double): WeatherData? {
+    override suspend fun fetchWeatherData(latitude: Double, longitude: Double): DailyWeatherData? {
         Log.d("LoadingDebug", "invoke getWeatherData in Repository")
         return suspendCancellableCoroutine { continuation ->
             val call = weatherApiService.getCurrentWeatherData(latitude, longitude)
@@ -33,7 +37,8 @@ class RemoteWeatherDataSourceImpl @Inject constructor(
                         Log.d("LoadingDebug", "Response is successful")
                         continuation.resume(
                             response.body()?.let {
-                                WeatherData(
+
+                                DailyWeatherData(
                                     id = 0,
                                     currentTemperature = it.main.temp,
                                     minTemperatureToday = it.main.temp_min,
@@ -71,17 +76,35 @@ class RemoteWeatherDataSourceImpl @Inject constructor(
         }
     }
 
-    override suspend fun getWeatherHourlyForecast(latitude: Double, longitude: Double): WeatherForecastResponse? {
+    override suspend fun fetchWeatherHourlyForecast(
+        latitude: Double,
+        longitude: Double
+    ): List<HourlyForecastData>? {
         Log.d("LoadingDebug", "invoke getWeatherHourlyForecast in Repository")
-        val result = CompletableDeferred<WeatherForecastResponse?>()
+        val result = CompletableDeferred<List<HourlyForecastData>?>()
         val call = weatherApiService.getHourlyWeatherData(latitude, longitude)
         call.enqueue(object : Callback<WeatherForecastResponse> {
             override fun onResponse(
                 call: Call<WeatherForecastResponse>,
                 response: Response<WeatherForecastResponse>
             ) {
-                if(response.isSuccessful){
-                    result.complete(response.body())
+                if (response.isSuccessful) {
+                    val hourlyForecastList = mutableListOf<HourlyForecastData>()
+                    with(response.body()) {
+                        this?.list?.take(9)?.forEachIndexed { index, item ->
+                            hourlyForecastList.add(
+                                HourlyForecastData(
+                                    id = index,
+                                    temperature = item.main.temp,
+                                    iconCode = item.weather[0].icon,
+                                    precipitation = item.pop,
+                                    time = item.dt,
+                                    lastUpdated = System.currentTimeMillis()
+                                )
+                            )
+                        }
+                        result.complete(hourlyForecastList.toList())
+                    }
                 } else {
                     result.complete(null)
                 }

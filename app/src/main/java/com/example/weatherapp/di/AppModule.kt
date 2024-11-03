@@ -6,7 +6,6 @@ import com.example.weatherapp.data.location.LocationRepository
 import com.example.weatherapp.data.weather.RemoteWeatherDataSourceImpl
 import com.example.weatherapp.data.weather.RemoteWeatherDataSource
 import com.example.weatherapp.data.weather.WeatherDao
-import com.example.weatherapp.data.weather.WeatherData
 import com.example.weatherapp.data.weather.WeatherRepository
 import com.example.weatherapp.data.weather.WeatherRepositoryImpl
 import com.example.weatherapp.network.WeatherApiService

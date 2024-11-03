@@ -1,10 +1,10 @@
-package com.example.weatherapp.data.weather
+package com.example.weatherapp.data.weather.database
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "weather_data")
-data class WeatherData (
+@Entity(tableName = "daily_weather_data")
+data class DailyWeatherData (
     @PrimaryKey val id: Int,
     val currentTemperature: Double,
     val minTemperatureToday: Double,

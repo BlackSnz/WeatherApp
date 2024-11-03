@@ -2,7 +2,7 @@ package com.example.weatherapp.di
 
 import android.content.Context
 import androidx.room.Room
-import com.example.weatherapp.data.weather.WeatherCacheDatabase
+import com.example.weatherapp.data.weather.database.WeatherCacheDatabase
 import com.example.weatherapp.data.weather.WeatherDao
 import dagger.Module
 import dagger.Provides
@@ -22,7 +22,7 @@ object DatabaseModule {
             context,
             WeatherCacheDatabase::class.java,
             "weather_database"
-        ).build()
+        ).fallbackToDestructiveMigration().build()
     }
 
     @Provides

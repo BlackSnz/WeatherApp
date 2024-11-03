@@ -1,11 +1,13 @@
 package com.example.weatherapp.data.weather
 
 import android.util.Log
+import com.example.weatherapp.data.weather.database.DailyWeatherData
+import com.example.weatherapp.data.weather.database.HourlyForecastData
 import javax.inject.Inject
 
 interface WeatherRepository {
-    suspend fun getWeatherData(latitude: Double, longitude: Double): WeatherData?
-    suspend fun getHourlyWeatherForecast(latitude: Double, longitude: Double): WeatherForecastResponse?
+    suspend fun getDailyWeatherData(latitude: Double, longitude: Double): DailyWeatherData?
+    suspend fun getHourlyWeatherForecastData(latitude: Double, longitude: Double): List<HourlyForecastData>?
 }
 
 class WeatherRepositoryImpl @Inject constructor(
@@ -13,19 +15,19 @@ class WeatherRepositoryImpl @Inject constructor(
     private val remoteWeatherDataSource: RemoteWeatherDataSource
 ) : WeatherRepository {
 
-    override suspend fun getWeatherData(latitude: Double, longitude: Double): WeatherData? {
-        val localWeatherData = localWeatherDataSource.getWeatherData()
+    override suspend fun getDailyWeatherData(latitude: Double, longitude: Double): DailyWeatherData? {
+        val localWeatherData = localWeatherDataSource.getDailyWeatherData()
         val currentTime = System.currentTimeMillis()
         return if (localWeatherData != null && currentTime - localWeatherData.lastUpdated < CACHE_EXPIRY_TIME) {
-            Log.d("CacheDebug", "Get weather data from cache")
+            Log.d("CacheDebug", "Get daily weather data from cache")
             localWeatherData
         } else {
-            Log.d("CacheDebug", "Get weather data from server")
+            Log.d("CacheDebug", "Get daily weather data from server")
             val remoteWeatherData = remoteWeatherDataSource.fetchWeatherData(latitude, longitude)
             if (remoteWeatherData != null) {
                 with(localWeatherDataSource) {
                     clearWeatherCache()
-                    insertWeatherData(remoteWeatherData)
+                    insertDailyWeatherData(remoteWeatherData)
                 }
                 remoteWeatherData
             } else {
@@ -34,11 +36,29 @@ class WeatherRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getHourlyWeatherForecast(
-        latitude: Double,
-        longitude: Double
-    ): WeatherForecastResponse? {
-        return remoteWeatherDataSource.getWeatherHourlyForecast(latitude, longitude)
+    override suspend fun getHourlyWeatherForecastData(latitude: Double, longitude: Double): List<HourlyForecastData>? {
+        val localHourlyWeatherData = localWeatherDataSource.getHourlyWeatherData()
+        Log.d("CacheDebug", "localHourlyWeatherData: $localHourlyWeatherData")
+
+        val currentTime = System.currentTimeMillis()
+        return if (localHourlyWeatherData.isNotEmpty() && currentTime - localHourlyWeatherData[0].lastUpdated < CACHE_EXPIRY_TIME) {
+            Log.d("CacheDebug", "Get hourly weather data from cache")
+            localHourlyWeatherData
+        } else {
+            Log.d("CacheDebug", "Get hourly weather data from server")
+            val remoteHourlyWeatherData = remoteWeatherDataSource.fetchWeatherHourlyForecast(latitude, longitude)
+            if (remoteHourlyWeatherData != null) {
+                with(localWeatherDataSource) {
+                    clearWeatherCache()
+                    remoteHourlyWeatherData.forEach{
+                        insertHourlyWeatherData(it)
+                    }
+                }
+                remoteHourlyWeatherData
+            } else {
+                return null
+            }
+        }
     }
 
     companion object {
