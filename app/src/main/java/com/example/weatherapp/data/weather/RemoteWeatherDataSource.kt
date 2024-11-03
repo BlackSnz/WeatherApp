@@ -91,7 +91,7 @@ class RemoteWeatherDataSourceImpl @Inject constructor(
                 if (response.isSuccessful) {
                     val hourlyForecastList = mutableListOf<HourlyForecastData>()
                     with(response.body()) {
-                        this?.list?.take(9)?.forEachIndexed { index, item ->
+                        this?.list?.forEachIndexed { index, item ->
                             hourlyForecastList.add(
                                 HourlyForecastData(
                                     id = index,

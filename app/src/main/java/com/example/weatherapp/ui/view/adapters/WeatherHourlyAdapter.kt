@@ -5,14 +5,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.appcompat.content.res.AppCompatResources
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.weatherapp.R
 import com.example.weatherapp.data.weather.HourlyForecastUnit
 import com.example.weatherapp.utils.TemperatureUtils.calculateTemperatureByUnit
+import com.example.weatherapp.utils.TimeUtils.unixTimeToIsoTime
 import com.example.weatherapp.utils.WeatherIconUtils.getWeatherIconId
-import java.util.Locale
 import kotlin.math.roundToInt
 
 class WeatherHourlyAdapter(private val hourlyForecastData: List<HourlyForecastUnit>) :
@@ -32,7 +31,6 @@ class WeatherHourlyAdapter(private val hourlyForecastData: List<HourlyForecastUn
     }
 
     override fun onBindViewHolder(holder: WeatherHourlyViewHolder, position: Int) {
-        // Prepare text for hourly temperature
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(holder.itemView.context)
         val temperatureUnit =
             sharedPreferences.getString("temperature_unit", "Celsius")
@@ -80,14 +78,6 @@ class WeatherHourlyAdapter(private val hourlyForecastData: List<HourlyForecastUn
     }
 
     override fun getItemCount(): Int = hourlyForecastData.size
-
-    private fun unixTimeToIsoTime(unixTime: String): String {
-        val unixTimestamp = unixTime.toLong()
-        val date = java.util.Date(unixTimestamp * 1000L)
-        val sdf = java.text.SimpleDateFormat("HH:mm", Locale.getDefault())
-        sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
-        return sdf.format(date)
-    }
 
     private fun shouldDisplayPrecipitation(precipitation: String): Boolean {
         return precipitation.toDouble() >= 0.05

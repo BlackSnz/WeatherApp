@@ -21,6 +21,7 @@ import com.airbnb.lottie.LottieAnimationView
 import com.example.weatherapp.R
 import com.example.weatherapp.databinding.WeatherMainBinding
 import com.example.weatherapp.ui.fragments.RequestLocationPermissionDialogFragment
+import com.example.weatherapp.ui.view.adapters.DailyForecastAdapter
 import com.example.weatherapp.ui.view.adapters.WeatherHourlyAdapter
 import com.example.weatherapp.ui.vm.WeatherDataUiState
 import com.example.weatherapp.ui.vm.WeatherMainScreenViewModel
@@ -36,7 +37,8 @@ class WeatherMainActivity : AppCompatActivity(),
     RequestLocationPermissionDialogFragment.NoticeDialogListener {
 
     private lateinit var binding: WeatherMainBinding
-    private lateinit var adapter: WeatherHourlyAdapter
+    private lateinit var weatherHourlyAdapter: WeatherHourlyAdapter
+    private lateinit var weatherDailyAdapter: DailyForecastAdapter
     private val weatherMainScreenViewModel: WeatherMainScreenViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -94,9 +96,15 @@ class WeatherMainActivity : AppCompatActivity(),
         // CardView for Hourly Forecast
         val hourlyForecastCard = binding.cvHourlyForecast
         // RecyclerView for Hourly Forecast
-        val recyclerView = findViewById<RecyclerView>(R.id.rvHourlyForecast)
-        recyclerView.layoutManager =
+        val hourlyForecastRecyclerView = findViewById<RecyclerView>(R.id.rvHourlyForecast)
+        hourlyForecastRecyclerView.layoutManager =
             LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+
+        // CardView for daily forecast
+        val dailyForecastCard = binding.cvDailyForecast
+        // RecyclerView for daily forecast
+        val dailyForecastRecyclerView = findViewById<RecyclerView>(R.id.rvDailyForecast)
+        dailyForecastRecyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
 
         fun showProgressBar() {
             weatherLoadingAnimation.visibility = View.VISIBLE
@@ -113,6 +121,7 @@ class WeatherMainActivity : AppCompatActivity(),
             weatherDescriptionText.visibility = View.INVISIBLE
             feelsLikeTemperatureText.visibility = View.INVISIBLE
             windCard.visibility = View.INVISIBLE
+            dailyForecastCard.visibility = View.INVISIBLE
         }
 
         fun hideProgressBar() {
@@ -129,6 +138,7 @@ class WeatherMainActivity : AppCompatActivity(),
             weatherDescriptionText.visibility = View.VISIBLE
             feelsLikeTemperatureText.visibility = View.VISIBLE
             windCard.visibility = View.VISIBLE
+            dailyForecastCard.visibility = View.VISIBLE
         }
 
         // Realise the workflow for requesting the location permission
@@ -137,7 +147,7 @@ class WeatherMainActivity : AppCompatActivity(),
                 this,
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED -> {
-                Log.d("LoadingDebug", "Permission granted")
+                Log.d("LoadingDebug", "Permission: ACCESS_COARSE_LOCATION granted")
                 weatherMainScreenViewModel.getWeatherInformation()
             }
 
@@ -162,7 +172,7 @@ class WeatherMainActivity : AppCompatActivity(),
         weatherMainScreenViewModel.weatherDataUiState.observe(this) { state ->
             Log.d(
                 "LoadingDebug",
-                "MainActivity.Observer weatherDataUiState. Change in weatherDataUiState"
+                "(MainActivity. Observer weatherDataUiState) -> Change in weatherDataUiState"
             )
             when (state) {
                 is WeatherDataUiState.Loading -> {
@@ -171,14 +181,19 @@ class WeatherMainActivity : AppCompatActivity(),
                 }
 
                 is WeatherDataUiState.Error -> {
+                    Log.d("LoadingDebug", "Отработал ошибку")
                     weatherLoadingAnimation.visibility = View.INVISIBLE
                     errorMessage.visibility = View.VISIBLE
                 }
                 is WeatherDataUiState.Success -> {
-                    val dataList = weatherMainScreenViewModel.weatherHourlyData.value
-                    adapter = WeatherHourlyAdapter(dataList!!)
-                    recyclerView.adapter = adapter
-                    Log.d("LoadingDebug", "Change weatherDataUiState to Success")
+                    val weatherHourlyData = weatherMainScreenViewModel.weatherHourlyData.value
+                    val weatherDailyData = weatherMainScreenViewModel.weatherDailyForecast.value
+                    Log.d("WeatherDataDebug", "$weatherDailyData")
+                    weatherHourlyAdapter = WeatherHourlyAdapter(weatherHourlyData!!)
+                    weatherDailyAdapter = DailyForecastAdapter(weatherDailyData!!)
+                    hourlyForecastRecyclerView.adapter = weatherHourlyAdapter
+                    dailyForecastRecyclerView.adapter = weatherDailyAdapter
+
                     hideProgressBar()
                     state.data.let {
                         weatherIcon.setImageDrawable(

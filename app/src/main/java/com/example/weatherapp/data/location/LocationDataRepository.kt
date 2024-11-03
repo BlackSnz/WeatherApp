@@ -32,17 +32,19 @@ class LocationRepository @Inject constructor(
 ) : LocationDataRepository {
 
     override suspend fun getCurrentLocation(): LocationResult {
-        Log.d("LoadingDebug", "invoke getCurrentLocation in Repository")
+        Log.d("LoadingDebug", "=== Now in getCurrentLocation in Repository ===")
         return try {
             val location = getLocation()
+            Log.d("LoadingDebug", "Current location is: $location")
             if (location != null) {
-                Log.d("LoadingDebug", "Get location, not null")
+                Log.d("LoadingDebug", "Location not null!")
                 val latitude = location.latitude.toBigDecimal()
                     .setScale(3, java.math.RoundingMode.HALF_EVEN).toDouble()
                 val longitude = location.longitude.toBigDecimal()
                     .setScale(3, java.math.RoundingMode.HALF_EVEN).toDouble()
                 val locationName = getCurrentLocationName(latitude, longitude)
                 if (locationName != null) {
+                    Log.d("LoadingDebug", "Can get location name, return LocationResult with data")
                     LocationResult.Success(
                         LocationInfo(
                             latitude,
@@ -78,14 +80,14 @@ class LocationRepository @Inject constructor(
             fusedLocationProviderClient.getCurrentLocation(
                 Priority.PRIORITY_BALANCED_POWER_ACCURACY, null
             ).addOnSuccessListener { location ->
-                Log.d("LoadingDebug", "Get location in LocationDataRepositor - Success")
+                Log.d("LoadingDebug", "Get current location in LocationDataRepository - Success")
                 cont.resume(location)
             }.addOnFailureListener { exception ->
-                Log.d("LoadingDebug", "Get location in LocationDataRepositor - Failure")
+                Log.d("LoadingDebug", "Get current location in LocationDataRepository - Failure")
                 cont.resumeWithException(exception)
             }
         } catch (e: SecurityException) {
-            Log.d("LoadingDebug", "Get location in LocationDataRepositor - SecurityException")
+            Log.d("LoadingDebug", "Get current location in LocationDataRepository - SecurityException")
             cont.resumeWithException(e)
         }
     }
