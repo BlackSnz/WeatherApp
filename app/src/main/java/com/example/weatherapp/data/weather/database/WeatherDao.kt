@@ -1,11 +1,10 @@
-package com.example.weatherapp.data.weather
+package com.example.weatherapp.data.weather.database
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.example.weatherapp.data.weather.database.DailyWeatherData
-import com.example.weatherapp.data.weather.database.HourlyForecastData
+import com.example.weatherapp.data.location.LocationInfo
 
 @Dao
 interface WeatherDao {
@@ -29,5 +28,4 @@ interface WeatherDao {
 
     @Query("DELETE FROM hourly_weather_data")
     suspend fun clearHourlyWeatherCache()
-
 }

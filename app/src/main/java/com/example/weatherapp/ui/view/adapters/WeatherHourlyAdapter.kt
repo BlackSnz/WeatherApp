@@ -42,7 +42,7 @@ class WeatherHourlyAdapter(private val hourlyForecastData: List<HourlyForecastUn
                     "Celsius"
                 )
                 hourlyTemperatureText = holder.itemView.context.getString(
-                    R.string.current_temperature_celcius,
+                    R.string.current_temperature_celsius,
                     hourlyTemperature
                 )
             }

@@ -14,6 +14,22 @@
         tools:context=".ui.screens.WeatherMainActivity">
 
         <!-- The structural block of the main weather -->
+
+        <!-- City name -->
+        <TextView
+            android:id="@+id/tvCity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:fontFamily="sans-serif"
+            android:textColor="?android:attr/textColorSecondary"
+            android:textSize="18sp"
+            android:visibility="invisible"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/ivRefresh"
+            tools:text="Moscow"
+            tools:visibility="visible" />
+
         <!-- Current temperature -->
         <TextView
             android:id="@+id/tvTemperature"
@@ -36,7 +52,7 @@
             android:layout_width="64dp"
             android:layout_height="64dp"
             android:layout_marginLeft="10dp"
-            android:contentDescription="@string/weather_icon"
+            android:contentDescription="@string/weather_icon_description"
             android:visibility="invisible"
             app:layout_constraintBottom_toBottomOf="@id/tvTemperature"
             app:layout_constraintHorizontal_chainStyle="packed"
@@ -74,20 +90,6 @@
             tools:text="Max: 24°C"
             tools:visibility="visible" />
 
-        <!-- City name -->
-        <TextView
-            android:id="@+id/tvCity"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:fontFamily="sans-serif"
-            android:textColor="?android:attr/textColorSecondary"
-            android:textSize="18sp"
-            android:visibility="invisible"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/ivRefresh"
-            tools:text="Moscow"
-            tools:visibility="visible" />
 
         <!-- Weather description -->
         <TextView

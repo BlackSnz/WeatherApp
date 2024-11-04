@@ -1,14 +1,13 @@
 package com.example.weatherapp.ui.vm
 
-import android.os.Debug
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.weatherapp.R
-import com.example.weatherapp.data.location.LocationDataRepository
 import com.example.weatherapp.data.location.LocationInfo
+import com.example.weatherapp.data.location.LocationRepository
 import com.example.weatherapp.data.location.LocationResult
 import com.example.weatherapp.data.weather.DailyForecastUnit
 import com.example.weatherapp.data.weather.HourlyForecastUnit
@@ -33,7 +32,7 @@ sealed interface WeatherDataUiState {
 @HiltViewModel
 class WeatherMainScreenViewModel @Inject constructor(
     private val weatherRepository: WeatherRepository,
-    private val locationRepository: LocationDataRepository
+    private val locationRepository: LocationRepository
 ) : ViewModel() {
 
     private val _weatherDataUiState = MutableLiveData<WeatherDataUiState>()
@@ -42,11 +41,11 @@ class WeatherMainScreenViewModel @Inject constructor(
     private val _locationData = MutableLiveData<LocationInfo>()
     val locationData: LiveData<LocationInfo> = _locationData
 
-    private val _weatherHourlyData = MutableLiveData<MutableList<HourlyForecastUnit>?>()
-    val weatherHourlyData: LiveData<MutableList<HourlyForecastUnit>?> = _weatherHourlyData
+    private val _weatherHourlyData = MutableLiveData<List<HourlyForecastUnit>?>()
+    val weatherHourlyData: LiveData<List<HourlyForecastUnit>?> = _weatherHourlyData
 
-    private val _weatherDailyForecast = MutableLiveData<MutableList<DailyForecastUnit>?>()
-    val weatherDailyForecast: LiveData<MutableList<DailyForecastUnit>?> = _weatherDailyForecast
+    private val _weatherDailyForecast = MutableLiveData<List<DailyForecastUnit>?>()
+    val weatherDailyForecast: LiveData<List<DailyForecastUnit>?> = _weatherDailyForecast
 
     private var weatherLoadingJob: Job? = null
 
@@ -55,68 +54,36 @@ class WeatherMainScreenViewModel @Inject constructor(
     // get weather data from the server.
     fun getWeatherInformation() {
         weatherLoadingJob?.cancel()
-        weatherLoadingJob = viewModelScope.launch(Dispatchers.IO) {
+        weatherLoadingJob = viewModelScope.launch() {
             Log.d("LoadingDebug", "==== Now in getWeatherInformation in VM ====")
             _weatherDataUiState.postValue(WeatherDataUiState.Loading)
             Log.d("LoadingDebug", "Change weatherDataUiState to Loading")
             try {
-                when (val locationResult = locationRepository.getCurrentLocation()) {
+                when (val locationResult = locationRepository.getLocationData()) {
                     is LocationResult.Error -> {
                         Log.d("LoadingDebug", "Change weatherDataUiState to Error")
                         _weatherDataUiState.postValue(WeatherDataUiState.Error(locationResult.message))
                     }
 
-                    is LocationResult.OnlyCoordinates -> {
-                        Log.d("LoadingDebug", "Change weatherDataUiState to Success (Only Coords)")
-                        _locationData.postValue(
-                            LocationInfo(
-                                locationResult.data.latitude,
-                                locationResult.data.longitude,
-                                null,
-                                null
-                            )
-                        )
-                        val weatherData = getWeatherData(
-                            locationResult.data.latitude,
-                            locationResult.data.longitude
-                        )
-                        getHourlyForecastData(
-                            locationResult.data.latitude,
-                            locationResult.data.longitude
-                        )
-                        Log.d("LoadingDebug", "Weather data: ${weatherData}")
-                        if (weatherData != null) {
-                            Log.d("LoadingDebug", "Change weatherDataUiState to Success")
-                            _weatherDataUiState.postValue(WeatherDataUiState.Success(weatherData))
-                        } else {
-                            _weatherDataUiState.postValue(WeatherDataUiState.Error("Can't get weather data"))
-                        }
-
-                    }
-
                     is LocationResult.Success -> {
                         _locationData.postValue(
-                            LocationInfo(
-                                locationResult.data.latitude,
-                                locationResult.data.longitude,
-                                locationResult.data.city,
-                                locationResult.data.country
-                            )
+                            locationResult.data
                         )
                         val weatherData = getWeatherData(
-                            locationResult.data.latitude,
-                            locationResult.data.longitude
+                            locationResult.data.latitude, locationResult.data.longitude
                         )
-                        getHourlyForecastData(
-                            locationResult.data.latitude,
-                            locationResult.data.longitude
+                        val forecastData = getHourlyForecastData(
+                            locationResult.data.latitude, locationResult.data.longitude
                         )
-                        Log.d("LoadingDebug", "Weather data: ${weatherData}")
+
                         if (weatherData != null) {
                             Log.d("LoadingDebug", "Change weatherDataUiState to Success")
-                            _weatherDataUiState.postValue(WeatherDataUiState.Success(weatherData))
+                            _weatherHourlyData.value = forecastData?.first
+                            _weatherDailyForecast.value = forecastData?.second
+                            _weatherDataUiState.value = WeatherDataUiState.Success(weatherData)
+
                         } else {
-                            _weatherDataUiState.postValue(WeatherDataUiState.Error("Can't get weather data"))
+                            _weatherDataUiState.value = WeatherDataUiState.Error("Can't get weather data")
                         }
                     }
                 }
@@ -156,13 +123,16 @@ class WeatherMainScreenViewModel @Inject constructor(
         return weatherUiData.await()
     }
 
-    private suspend fun getHourlyForecastData(latitude: Double, longitude: Double) {
-        val hourlyForecastData =
-            weatherRepository.getHourlyWeatherForecastData(latitude, longitude)
+    private suspend fun getHourlyForecastData(
+        latitude: Double,
+        longitude: Double
+    ): Pair<List<HourlyForecastUnit>, List<DailyForecastUnit>>? {
+        val hourlyForecastData = weatherRepository.getHourlyWeatherForecastData(latitude, longitude)
+        Log.d("WeatherDataDebug", "Hourly forecast data: $hourlyForecastData")
+        val pairOfForecastUnits =
+            CompletableDeferred<Pair<List<HourlyForecastUnit>, List<DailyForecastUnit>>?>()
         if (hourlyForecastData != null) {
-            val hourlyForecastList: MutableList<HourlyForecastUnit> = mutableListOf()
-            val dailyForecastList: MutableList<DailyForecastUnit> = mutableListOf()
-
+            val hourlyForecastList = mutableListOf<HourlyForecastUnit>()
             hourlyForecastData.take(9).forEach { item ->
                 val hourlyForecastUnit = HourlyForecastUnit(
                     temperature = item.temperature.toString(),
@@ -174,6 +144,7 @@ class WeatherMainScreenViewModel @Inject constructor(
             }
 
             // Creating a list with daily forecast
+            val dailyForecastList = mutableListOf<DailyForecastUnit>()
             var startIndex: Int = 0
             var endIndex: Int = 7
             repeat(4) {
@@ -192,14 +163,17 @@ class WeatherMainScreenViewModel @Inject constructor(
                     dayOfWeek = unixToDayOfWeek(oneDayForecastList[0].time)
                 )
                 dailyForecastList.add(dailyForecastUnit)
-
             }
-            _weatherHourlyData.postValue(hourlyForecastList)
-            _weatherDailyForecast.postValue(dailyForecastList)
+            pairOfForecastUnits.complete(
+                Pair(
+                    hourlyForecastList.toList(),
+                    dailyForecastList.toList()
+                )
+            )
         } else {
-            _weatherHourlyData.postValue(null)
-            _weatherDailyForecast.postValue(null)
+            pairOfForecastUnits.complete(null)
         }
+        return pairOfForecastUnits.await()
     }
 
     fun setDirectionIcon(currentDirection: String): Int {

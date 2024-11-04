@@ -5,12 +5,12 @@
     <!-- Категория настроек для системы измерения -->
     <PreferenceCategory
         android:key="measurement_system_category"
-        android:title="Measurement System">
+        android:title="@string/preferences_measurement_system_category_title">
 
         <!-- Настройка выбора единицы температуры -->
         <ListPreference
             android:defaultValue="Celsius"
-            android:dialogTitle="Temperature Unit"
+            android:dialogTitle="@string/preferences_measurement_system_temperature_unit"
             android:entries="@array/temperature_units"
             android:entryValues="@array/temperature_values"
             android:key="temperature_unit"
@@ -21,7 +21,7 @@
         <!-- Настройка выбора единицы давления -->
         <ListPreference
             android:defaultValue="hPa"
-            android:dialogTitle="Pressure Unit"
+            android:dialogTitle="@string/preferences_measurement_system_pressure_unit"
             android:entries="@array/pressure_units"
             android:entryValues="@array/pressure_values"
             android:key="pressure_unit"

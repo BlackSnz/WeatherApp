@@ -2,8 +2,9 @@ package com.example.weatherapp.di
 
 import android.content.Context
 import androidx.room.Room
-import com.example.weatherapp.data.weather.database.WeatherCacheDatabase
-import com.example.weatherapp.data.weather.WeatherDao
+import com.example.weatherapp.data.location.LocationDao
+import com.example.weatherapp.data.weather.database.DataCacheDatabase
+import com.example.weatherapp.data.weather.database.WeatherDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,16 +18,21 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideDatabase(@ApplicationContext context: Context): WeatherCacheDatabase {
+    fun provideDatabase(@ApplicationContext context: Context): DataCacheDatabase {
         return Room.databaseBuilder(
             context,
-            WeatherCacheDatabase::class.java,
+            DataCacheDatabase::class.java,
             "weather_database"
         ).fallbackToDestructiveMigration().build()
     }
 
     @Provides
-    fun provideWeatherDao(database: WeatherCacheDatabase): WeatherDao {
+    fun provideWeatherDao(database: DataCacheDatabase): WeatherDao {
         return database.weatherDao()
+    }
+
+    @Provides
+    fun provideLocationDao(database: DataCacheDatabase): LocationDao {
+        return database.locationDao()
     }
 }

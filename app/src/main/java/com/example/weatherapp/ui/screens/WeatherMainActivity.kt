@@ -17,6 +17,7 @@ import androidx.fragment.app.DialogFragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.transition.Visibility
 import com.airbnb.lottie.LottieAnimationView
 import com.example.weatherapp.R
 import com.example.weatherapp.databinding.WeatherMainBinding
@@ -181,18 +182,26 @@ class WeatherMainActivity : AppCompatActivity(),
                 }
 
                 is WeatherDataUiState.Error -> {
-                    Log.d("LoadingDebug", "Отработал ошибку")
                     weatherLoadingAnimation.visibility = View.INVISIBLE
                     errorMessage.visibility = View.VISIBLE
                 }
                 is WeatherDataUiState.Success -> {
                     val weatherHourlyData = weatherMainScreenViewModel.weatherHourlyData.value
                     val weatherDailyData = weatherMainScreenViewModel.weatherDailyForecast.value
-                    Log.d("WeatherDataDebug", "$weatherDailyData")
-                    weatherHourlyAdapter = WeatherHourlyAdapter(weatherHourlyData!!)
-                    weatherDailyAdapter = DailyForecastAdapter(weatherDailyData!!)
-                    hourlyForecastRecyclerView.adapter = weatherHourlyAdapter
-                    dailyForecastRecyclerView.adapter = weatherDailyAdapter
+                    Log.d("WeatherDataDebug", "Weather daily forecast: $weatherDailyData")
+                    Log.d("WeatherDataDebug", "Weather hourly forecast: $weatherHourlyData")
+
+                    if(weatherHourlyData != null) {
+                        weatherHourlyAdapter = WeatherHourlyAdapter(weatherHourlyData)
+                        weatherDailyAdapter = DailyForecastAdapter(weatherDailyData!!)
+                        hourlyForecastRecyclerView.adapter = weatherHourlyAdapter
+                        dailyForecastRecyclerView.adapter = weatherDailyAdapter
+                    } else {
+                        hourlyForecastRecyclerView.adapter = null
+                        dailyForecastRecyclerView.adapter = null
+                        dailyForecastCard.visibility = View.GONE
+                        hourlyForecastCard.visibility = View.GONE
+                    }
 
                     hideProgressBar()
                     state.data.let {
@@ -212,7 +221,7 @@ class WeatherMainActivity : AppCompatActivity(),
                             "Celsius" -> {
                                 weatherTemperatureText.text =
                                     this.getString(
-                                        R.string.current_temperature_celcius,
+                                        R.string.current_temperature_celsius,
                                         calculateTemperatureByUnit(
                                             it.currentTemperature.toDouble(),
                                             temperatureUnit
@@ -220,7 +229,7 @@ class WeatherMainActivity : AppCompatActivity(),
                                     )
                                 minWeatherTemperatureText.text =
                                     this.getString(
-                                        R.string.current_min_temperature_celcuis,
+                                        R.string.current_min_temperature_celsius,
                                         calculateTemperatureByUnit(
                                             it.minTemperatureToday.toDouble(),
                                             temperatureUnit
@@ -228,7 +237,7 @@ class WeatherMainActivity : AppCompatActivity(),
                                     )
                                 maxWeatherTemperatureText.text =
                                     this.getString(
-                                        R.string.current_max_temperature_celcuis,
+                                        R.string.current_max_temperature_celsius,
                                         calculateTemperatureByUnit(
                                             it.maxTemperatureToday.toDouble(),
                                             temperatureUnit
@@ -236,7 +245,7 @@ class WeatherMainActivity : AppCompatActivity(),
                                     )
                                 feelsLikeTemperatureText.text =
                                     this.getString(
-                                        R.string.current_feels_like_tempertature_celcius,
+                                        R.string.current_feels_like_temperature_celsius,
                                         calculateTemperatureByUnit(
                                             it.feelsLikeTemperature.toDouble(),
                                             temperatureUnit
@@ -274,7 +283,7 @@ class WeatherMainActivity : AppCompatActivity(),
                                     )
                                 feelsLikeTemperatureText.text =
                                     this.getString(
-                                        R.string.current_feels_like_tempertature_fahrenheit,
+                                        R.string.current_feels_like_temperature_fahrenheit,
                                         calculateTemperatureByUnit(
                                             it.feelsLikeTemperature.toDouble(),
                                             temperatureUnit

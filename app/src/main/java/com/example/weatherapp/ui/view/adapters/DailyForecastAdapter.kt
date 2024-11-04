@@ -59,11 +59,11 @@ class DailyForecastAdapter(private val dailyForecastData: List<DailyForecastUnit
                     "Celsius"
                 )
                 dailyMaxTemperatureText = holder.itemView.context.getString(
-                    R.string.current_temperature_celcius,
+                    R.string.current_temperature_celsius,
                     maxTemperature
                 )
                 dailyMinTemperatureText = holder.itemView.context.getString(
-                    R.string.current_temperature_celcius,
+                    R.string.current_temperature_celsius,
                     minTemperature
                 )
             }

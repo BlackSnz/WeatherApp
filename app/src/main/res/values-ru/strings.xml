@@ -6,10 +6,10 @@
     <string name="current_max_temperature_celsius">Max: %1$s°C</string>
     <string name="current_min_temperature_fahrenheit">Min: %1$s°F</string>
     <string name="current_max_temperature_fahrenheit">Max: %1$s°F</string>
-    <string name="current_feels_like_temperature_celsius">Feels like: %1$s°C</string>
-    <string name="current_feels_like_temperature_fahrenheit">Feels like: %1$s°F</string>
+    <string name="current_feels_like_temperature_celsius">Ощущается как: %1$s°C</string>
+    <string name="current_feels_like_temperature_fahrenheit">Ощущается как: %1$s°F</string>
     <string name="current_temperature_fahrenheit">%1$s°F</string>
-    <string name="weather_icon_description">Weather icon</string>
+    <string name="weather_icon_description">Иконка погоды</string>
     <string name="current_humidity">%1$s%%</string>
     <string name="current_wind">%1$s m/s</string>
     <string name="current_pressure_hpa">%1$s</string>
@@ -19,15 +19,16 @@
     <string name="precipitation_in_percent">%1$s%%</string>
 
     <!-- Preferences screen stings -->
-    <string name="preferences_measurement_system_category_title">Measurement System</string>
-    <string name="preferences_measurement_system_temperature_unit">Temperature Unit</string>
-    <string name="preferences_measurement_system_pressure_unit">Pressure Unit</string>
+    <string name="preferences_measurement_system_category_title">Системы измерения</string>
+    <string name="preferences_measurement_system_temperature_unit">Значения температуры</string>
+    <string name="preferences_measurement_system_pressure_unit">Значения давления</string>
+
 
     <!-- Settings string -->
     <!-- Массив единиц температуры -->
     <string-array name="temperature_units">
-        <item>Celsius</item>
-        <item>Fahrenheit</item>
+        <item>Градус Цельсия</item>
+        <item>Градус Фаренгейта</item>
     </string-array>
 
     <string-array name="temperature_values">
@@ -37,8 +38,8 @@
 
     <!-- Массив единиц давления -->
     <string-array name="pressure_units">
-        <item>hPa</item>
-        <item>mmHg</item>
+        <item>Гектопаскаль</item>
+        <item>мм рт ст</item>
     </string-array>
 
     <string-array name="pressure_values">

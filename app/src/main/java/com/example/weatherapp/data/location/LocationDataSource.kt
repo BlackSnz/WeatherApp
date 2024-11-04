@@ -16,23 +16,18 @@ import kotlin.coroutines.resumeWithException
 
 
 interface LocationDataRepository {
-    suspend fun getCurrentLocation() : LocationResult
-}
-
-sealed interface LocationResult {
-    data class Success(val data: LocationInfo) : LocationResult
-    data class OnlyCoordinates(val data: LocationInfo) : LocationResult
-    data class Error(val message: String) : LocationResult
+    suspend fun getCurrentLocation() : LocationInfo?
 }
 
 @Singleton
-class LocationRepository @Inject constructor(
+class LocationDataSource @Inject constructor(
     private val fusedLocationProviderClient: FusedLocationProviderClient,
     private val geocoder: Geocoder,
 ) : LocationDataRepository {
 
-    override suspend fun getCurrentLocation(): LocationResult {
+    override suspend fun getCurrentLocation(): LocationInfo? {
         Log.d("LoadingDebug", "=== Now in getCurrentLocation in Repository ===")
+
         return try {
             val location = getLocation()
             Log.d("LoadingDebug", "Current location is: $location")
@@ -43,35 +38,39 @@ class LocationRepository @Inject constructor(
                 val longitude = location.longitude.toBigDecimal()
                     .setScale(3, java.math.RoundingMode.HALF_EVEN).toDouble()
                 val locationName = getCurrentLocationName(latitude, longitude)
+                val currentTime = System.currentTimeMillis()
                 if (locationName != null) {
                     Log.d("LoadingDebug", "Can get location name, return LocationResult with data")
-                    LocationResult.Success(
                         LocationInfo(
+                            id = 0,
                             latitude,
                             longitude,
                             locationName.first,
-                            locationName.second
+                            locationName.second,
+                            currentTime
                         )
-                    )
+
                 } else { // If can't get location name, return only coordinates
                     Log.d("LoadingDebug", "Can't get location name, return only coordinates")
-                    LocationResult.OnlyCoordinates(
                         LocationInfo(
+                            id = 0,
                             latitude,
                             longitude,
                             null,
-                            null
+                            null,
+                            currentTime
                         )
-                    )
                 }
             } else { // If can't get location
                 Log.d("LoadingDebug", "Can't get location")
-                LocationResult.Error("Can't get current location")
+                null
             }
         } catch (e: SecurityException) {
-            LocationResult.Error(e.message ?: "Don't have permission for location")
+            Log.d("LoadingDebug", "Don't have the permission")
+            null
         } catch (e: Exception) {
-            LocationResult.Error(e.message ?: "Unknown error when try to get current location")
+            Log.d("LoadingDebug", "Catch exception: ${e.message}")
+            null
         }
     }
 

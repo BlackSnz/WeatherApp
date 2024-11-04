@@ -1,11 +1,14 @@
 package com.example.weatherapp.di
 
 import android.location.Geocoder
+import com.example.weatherapp.data.location.LocationDao
 import com.example.weatherapp.data.location.LocationDataRepository
+import com.example.weatherapp.data.location.LocationDataSource
 import com.example.weatherapp.data.location.LocationRepository
+import com.example.weatherapp.data.location.LocationRepositoryImpl
 import com.example.weatherapp.data.weather.RemoteWeatherDataSourceImpl
 import com.example.weatherapp.data.weather.RemoteWeatherDataSource
-import com.example.weatherapp.data.weather.WeatherDao
+import com.example.weatherapp.data.weather.database.WeatherDao
 import com.example.weatherapp.data.weather.WeatherRepository
 import com.example.weatherapp.data.weather.WeatherRepositoryImpl
 import com.example.weatherapp.network.WeatherApiService
@@ -58,10 +61,20 @@ class AppModule {
     // Provide LocationDataRepository
     @Provides
     @Singleton
-    fun provideLocationDataRepository(
+    fun provideLocationDataSource(
         fusedLocationProviderClient: FusedLocationProviderClient,
         geocoder: Geocoder
     ): LocationDataRepository {
-        return LocationRepository(fusedLocationProviderClient, geocoder)
+        return LocationDataSource(fusedLocationProviderClient, geocoder)
+    }
+
+    // Provide location repository
+    @Provides
+    @Singleton
+    fun provideLocationRepository(
+        localLocationDataSource: LocationDao,
+        remoteLocationDataSource: LocationDataSource
+    ): LocationRepository {
+        return LocationRepositoryImpl(localLocationDataSource, remoteLocationDataSource)
     }
 }

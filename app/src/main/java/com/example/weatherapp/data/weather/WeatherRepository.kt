@@ -3,6 +3,7 @@ package com.example.weatherapp.data.weather
 import android.util.Log
 import com.example.weatherapp.data.weather.database.DailyWeatherData
 import com.example.weatherapp.data.weather.database.HourlyForecastData
+import com.example.weatherapp.data.weather.database.WeatherDao
 import javax.inject.Inject
 
 interface WeatherRepository {
@@ -31,21 +32,22 @@ class WeatherRepositoryImpl @Inject constructor(
                 }
                 remoteWeatherData
             } else {
-                return null
+                Log.d("LoadingDebug", "Can't find a cache for the daily weather data")
+                null
             }
         }
     }
 
     override suspend fun getHourlyWeatherForecastData(latitude: Double, longitude: Double): List<HourlyForecastData>? {
         val localHourlyWeatherData = localWeatherDataSource.getHourlyWeatherData()
-        Log.d("CacheDebug", "localHourlyWeatherData: $localHourlyWeatherData")
+        Log.d("LoadingDebug", "localHourlyWeatherData: $localHourlyWeatherData")
 
         val currentTime = System.currentTimeMillis()
         return if (localHourlyWeatherData.isNotEmpty() && currentTime - localHourlyWeatherData[0].lastUpdated < CACHE_EXPIRY_TIME) {
-            Log.d("CacheDebug", "Get hourly weather data from cache")
+            Log.d("LoadingDebug", "Get hourly weather data from cache")
             localHourlyWeatherData
         } else {
-            Log.d("CacheDebug", "Get hourly weather data from server")
+            Log.d("LoadingDebug", "Get hourly weather data from server")
             val remoteHourlyWeatherData = remoteWeatherDataSource.fetchWeatherHourlyForecast(latitude, longitude)
             if (remoteHourlyWeatherData != null) {
                 with(localWeatherDataSource) {
@@ -56,7 +58,8 @@ class WeatherRepositoryImpl @Inject constructor(
                 }
                 remoteHourlyWeatherData
             } else {
-                return null
+                Log.d("LoadingDebug", "Can't find a cache for the hourly weather data")
+                null
             }
         }
     }
