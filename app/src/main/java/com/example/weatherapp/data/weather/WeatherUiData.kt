@@ -1,7 +1,5 @@
 package com.example.weatherapp.data.weather
 
-import android.graphics.drawable.Drawable
-
 data class WeatherUiData(
     // Temperature values
     val currentTemperature: String,

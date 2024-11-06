@@ -52,7 +52,7 @@
             android:id="@+id/ivWeatherIcon"
             android:layout_width="64dp"
             android:layout_height="64dp"
-            android:layout_marginLeft="10dp"
+            android:layout_marginStart="10dp"
             android:contentDescription="@string/weather_icon_description"
             android:visibility="invisible"
             app:layout_constraintBottom_toBottomOf="@id/tvTemperature"
@@ -81,7 +81,7 @@
             android:id="@+id/tvMaxTemperatureToday"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
+            android:layout_marginStart="10dp"
             android:fontFamily="sans-serif-medium"
             android:textColor="?android:attr/textColorSecondary"
             android:textSize="16sp"
@@ -127,7 +127,7 @@
             android:layout_marginTop="45dp"
             android:layout_marginEnd="15dp"
             android:clickable="true"
-            android:contentDescription="Settings icon"
+            android:contentDescription="@string/settings_icon_content_description"
             android:src="@drawable/settings_icon"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -137,9 +137,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="45dp"
-            android:layout_marginRight="10dp"
+            android:layout_marginEnd="10dp"
             android:clickable="true"
-            android:contentDescription="Refresh icon"
+            android:contentDescription="@string/refresh_icon_content_description"
             android:src="@drawable/refresh_icon"
             app:layout_constraintRight_toLeftOf="@id/ivSettings"
             app:layout_constraintTop_toTopOf="parent" />
@@ -181,7 +181,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_margin="10dp"
-                    android:contentDescription="Hourly forecast header icon"
+                    android:contentDescription="@string/hourly_forecast_header_icon_content_description"
                     android:src="@drawable/hourly_forecast_header_icon"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -238,7 +238,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_margin="10dp"
-                    android:contentDescription="Daily forecast header icon"
+                    android:contentDescription="@string/daily_forecast_header_icon_content_description"
                     android:src="@drawable/daily_forecast_header_icon"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -311,6 +311,7 @@
                     android:layout_height="wrap_content"
                     android:src="@drawable/wind_header_icon"
                     app:layout_constraintStart_toStartOf="parent"
+                    android:contentDescription="@string/wind_card_header_icon_content_description"
                     app:layout_constraintTop_toTopOf="parent" />
 
 
@@ -342,7 +343,7 @@
                     android:id="@+id/ivWindCardIcon"
                     android:layout_width="50dp"
                     android:layout_height="50dp"
-                    android:contentDescription="Wind icon"
+                    android:contentDescription="@string/wind_card_direction_icon_content_description"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/tvWindCardHeader"
@@ -391,6 +392,7 @@
                     android:layout_height="wrap_content"
                     android:src="@drawable/humidity_percentage"
                     app:layout_constraintStart_toStartOf="parent"
+                    android:contentDescription="@string/humidity_card_header_icon_content_description"
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <TextView
@@ -446,6 +448,7 @@
                     android:id="@+id/ivPressureHeaderIcon"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:contentDescription="@string/pressure_card_header_icon_content_description"
                     android:src="@drawable/pressure_header_icon"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />

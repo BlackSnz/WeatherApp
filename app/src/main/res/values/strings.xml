@@ -31,6 +31,21 @@
     <string name="wind_information_card_header">Wind information</string>
     <string name="humidity_card_header">Humidity</string>
     <string name="pressure_card_header">Pressure</string>
+    <string name="app_version">Version: %1$s</string>
+    <string name="error_get_weather_information_content_description">Error get weather information</string>
+    <string name="error_weather_text">Can\'t get the information about your location. Try again or load default city.</string>
+    <string name="error_weather_icon">Error weather icon</string>
+    <string name="try_again_button_text">Try again</string>
+    <string name="load_default_button_text">Load default</string>
+    <string name="settings_icon_content_description">Settings icon</string>
+    <string name="refresh_icon_content_description">Refresh icon</string>
+    <string name="hourly_forecast_header_icon_content_description">Hourly forecast header icon</string>
+    <string name="daily_forecast_header_icon_content_description">Daily forecast header icon</string>
+    <string name="wind_card_header_icon_content_description">Wind card header icon</string>
+    <string name="wind_card_direction_icon_content_description">Wind icon</string>
+    <string name="humidity_card_header_icon_content_description">Humidity card header icon</string>
+    <string name="pressure_card_header_icon_content_description">Pressure card header icon</string>
+    <string name="hourly_forecast_weather_icon_content_description">Hourly forecast weather icon</string>
 
 
     <!-- Settings string -->

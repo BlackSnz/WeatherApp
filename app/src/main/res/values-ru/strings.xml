@@ -32,7 +32,21 @@
     <string name="wind_information_card_header">Ветер</string>
     <string name="humidity_card_header">Влажность</string>
     <string name="pressure_card_header">Давление</string>
-
+    <string name="app_version">Версия: %1$s</string>
+    <string name="pressure_card_header_icon_content_description">Иконка заголовка карточки давления</string>
+    <string name="error_get_weather_information_content_description">Error get weather information</string>
+    <string name="error_weather_text">Возникла ошибка при получении информации о погоде. Попробуйте ещё раз или загрузите погоду в городе по умолчанию (Москва).</string>
+    <string name="error_weather_icon">Иконка ошибки загрузки погоды</string>
+    <string name="try_again_button_text">Попробовать снова</string>
+    <string name="load_default_button_text">Загрузить по умолчанию</string>
+    <string name="settings_icon_content_description">Иконка настроек</string>
+    <string name="refresh_icon_content_description">Иконка обновления</string>
+    <string name="hourly_forecast_header_icon_content_description">Иконка заголовка карточки почасового прогноза</string>
+    <string name="daily_forecast_header_icon_content_description">Иконка заголовка карточки прогноза по дням </string>
+    <string name="wind_card_header_icon_content_description">Иконка заголовка карточки ветра</string>
+    <string name="wind_card_direction_icon_content_description">Иконка направления ветра</string>
+    <string name="humidity_card_header_icon_content_description">Иконка заголовка карточки влажности</string>
+    <string name="hourly_forecast_weather_icon_content_description">Иконка погоды почасового прогноза</string>
 
     <!-- Settings string -->
     <!-- Массив единиц температуры -->

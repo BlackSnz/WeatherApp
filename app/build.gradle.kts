@@ -90,6 +90,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.play.services)
 
     // Lottie animations
+    //noinspection UseTomlInstead
     implementation("com.airbnb.android:lottie:3.5.0")
 
     // Room

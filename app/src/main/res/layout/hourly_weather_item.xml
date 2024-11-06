@@ -37,6 +37,7 @@
         android:id="@+id/ivHourlyWeatherIcon"
         android:layout_width="25dp"
         android:layout_height="25dp"
+        android:contentDescription="@string/hourly_forecast_weather_icon_content_description"
         android:src="@drawable/weather_icon"
         app:layout_constraintTop_toBottomOf="@id/tvHourlyTemperature"
         app:layout_constraintStart_toStartOf="parent"

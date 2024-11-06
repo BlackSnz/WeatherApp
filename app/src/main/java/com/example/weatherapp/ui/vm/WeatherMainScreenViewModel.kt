@@ -12,7 +12,6 @@ import com.example.weatherapp.data.location.LocationRepository
 import com.example.weatherapp.data.location.LocationResult
 import com.example.weatherapp.data.weather.DailyForecastUnit
 import com.example.weatherapp.data.weather.HourlyForecastUnit
-import com.example.weatherapp.data.weather.WeatherCondition
 import com.example.weatherapp.data.weather.WeatherRepository
 import com.example.weatherapp.data.weather.WeatherUiData
 import com.example.weatherapp.utils.TimeUtils.unixToDayOfWeek
@@ -53,9 +52,9 @@ class WeatherMainScreenViewModel @Inject constructor(
     // Function for all async operation which fetch necessary information about the main weather parameters
     // First, load the information about the location, then use received information (latitude, longitude)
     // get weather data from the server.
-    fun getWeatherInformation(callError: Boolean = false) {
+    fun getWeatherInformation() {
         weatherLoadingJob?.cancel()
-        weatherLoadingJob = viewModelScope.launch() {
+        weatherLoadingJob = viewModelScope.launch {
             Log.d("LoadingDebug", "==== Now in getWeatherInformation in VM ====")
             _weatherDataUiState.postValue(WeatherDataUiState.Loading)
             Log.d("LoadingDebug", "Change weatherDataUiState to Loading")
@@ -149,8 +148,8 @@ class WeatherMainScreenViewModel @Inject constructor(
 
             // Creating a list with daily forecast
             val dailyForecastList = mutableListOf<DailyForecastUnit>()
-            var startIndex: Int = 0
-            var endIndex: Int = 7
+            var startIndex = 0
+            var endIndex = 7
             repeat(4) {
                 startIndex += 8
                 endIndex += 8
@@ -215,24 +214,6 @@ class WeatherMainScreenViewModel @Inject constructor(
             else -> {
                 Log.e("WeatherCardView", "Unknown direction: $currentDirection")
                 return R.drawable.n_direction
-            }
-        }
-    }
-
-    private fun getWindDirectionCode(windDegrees: Int): String? {
-        return when (windDegrees) {
-            in 0..44 -> "n"
-            in 45..89 -> "ne"
-            in 90..134 -> "e"
-            in 135..179 -> "se"
-            in 180..224 -> "s"
-            in 225..269 -> "sw"
-            in 270..314 -> "w"
-            in 315..359 -> "nw"
-            360 -> "n"
-            else -> {
-                Log.d("WeatherViewModel", "Unknown wind direction: $windDegrees")
-                return null
             }
         }
     }

@@ -154,7 +154,7 @@ class WeatherMainActivity : AppCompatActivity(),
                     Manifest.permission.ACCESS_COARSE_LOCATION
                 ) == PackageManager.PERMISSION_GRANTED -> {
                     Log.d("LoadingDebug", "Permission: ACCESS_COARSE_LOCATION granted")
-                    weatherMainScreenViewModel.getWeatherInformation(callError = true)
+                    weatherMainScreenViewModel.getWeatherInformation()
                 }
 
                 ActivityCompat.shouldShowRequestPermissionRationale(

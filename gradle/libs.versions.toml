@@ -37,6 +37,9 @@ androidx-navigation-dynamic-features-fragment = { module = "androidx.navigation:
 androidx-navigation-testing = { module = "androidx.navigation:navigation-testing", version.ref = "navigationFragmentVersion" }
 androidx-navigation-ui = { module = "androidx.navigation:navigation-ui", version.ref = "navigationFragmentVersion" }
 androidx-preference-ktx = { module = "androidx.preference:preference-ktx", version.ref = "preference" }
+androidx-room-compiler = { module = "androidx.room:room-compiler" }
+androidx-room-ktx = { module = "androidx.room:room-ktx" }
+androidx-room-runtime = { module = "androidx.room:room-runtime" }
 androidx-swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "swiperefreshlayout" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 converter-scalars = { module = "com.squareup.retrofit2:converter-scalars", version.ref = "retrofit" }
@@ -58,6 +61,7 @@ org-jetbrains-kotlinx-kotlinx-coroutines-test2 = { module = "org.jetbrains.kotli
 org-mockito-mockito-core2 = { module = "org.mockito:mockito-core", version.ref = "mockitoMockitoCoreVersion" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 androidx-preference = { group = "androidx.preference", name = "preference", version.ref = "preference" }
+room-compiler = { module = "androidx.room:room-compiler" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
