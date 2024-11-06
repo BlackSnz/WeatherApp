@@ -17,9 +17,9 @@ import androidx.fragment.app.DialogFragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.transition.Visibility
 import com.airbnb.lottie.LottieAnimationView
 import com.example.weatherapp.R
+import com.example.weatherapp.data.weather.WeatherCondition
 import com.example.weatherapp.databinding.WeatherMainBinding
 import com.example.weatherapp.ui.fragments.RequestLocationPermissionDialogFragment
 import com.example.weatherapp.ui.view.adapters.DailyForecastAdapter
@@ -65,8 +65,6 @@ class WeatherMainActivity : AppCompatActivity(),
         val feelsLikeTemperatureText = binding.tvFeelsLikeToday
         val weatherDescriptionText = binding.tvWeatherDescription
 
-        // Weather loading states values
-        val errorMessage = binding.clLoadingError
 
         // CARD VIEWS
         // Values for the wind card information
@@ -107,22 +105,28 @@ class WeatherMainActivity : AppCompatActivity(),
         val dailyForecastRecyclerView = findViewById<RecyclerView>(R.id.rvDailyForecast)
         dailyForecastRecyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
 
+        // Error message
+        val errorMessage = binding.includedErrorLayout.clLoadingError
+        val taButton = binding.includedErrorLayout.buttonTryAgain
+        val loadDefaultButton = binding.includedErrorLayout.buttonLoadDefault
+
         fun showProgressBar() {
+            pressureCard.visibility = View.GONE
+            humidityCard.visibility = View.GONE
+            hourlyForecastCard.visibility = View.GONE
+            errorMessage.visibility = View.GONE
+            cityText.visibility = View.GONE
+            weatherTemperatureText.visibility = View.GONE
+            weatherIcon.visibility = View.GONE
+            minWeatherTemperatureText.visibility = View.GONE
+            maxWeatherTemperatureText.visibility = View.GONE
+            weatherDescriptionText.visibility = View.GONE
+            feelsLikeTemperatureText.visibility = View.GONE
+            windCard.visibility = View.GONE
+            dailyForecastCard.visibility = View.GONE
+
             weatherLoadingAnimation.visibility = View.VISIBLE
-            pressureCard.visibility = View.INVISIBLE
-            humidityCard.visibility = View.INVISIBLE
-            hourlyForecastCard.visibility = View.INVISIBLE
-            errorMessage.visibility = View.INVISIBLE
             weatherLoadingAnimation.playAnimation()
-            cityText.visibility = View.INVISIBLE
-            weatherTemperatureText.visibility = View.INVISIBLE
-            weatherIcon.visibility = View.INVISIBLE
-            minWeatherTemperatureText.visibility = View.INVISIBLE
-            maxWeatherTemperatureText.visibility = View.INVISIBLE
-            weatherDescriptionText.visibility = View.INVISIBLE
-            feelsLikeTemperatureText.visibility = View.INVISIBLE
-            windCard.visibility = View.INVISIBLE
-            dailyForecastCard.visibility = View.INVISIBLE
         }
 
         fun hideProgressBar() {
@@ -143,30 +147,42 @@ class WeatherMainActivity : AppCompatActivity(),
         }
 
         // Realise the workflow for requesting the location permission
-        when {
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                Log.d("LoadingDebug", "Permission: ACCESS_COARSE_LOCATION granted")
-                weatherMainScreenViewModel.getWeatherInformation()
-            }
+        fun requestWeatherInfoWithPermission() {
+            when {
+                ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED -> {
+                    Log.d("LoadingDebug", "Permission: ACCESS_COARSE_LOCATION granted")
+                    weatherMainScreenViewModel.getWeatherInformation(callError = true)
+                }
 
-            ActivityCompat.shouldShowRequestPermissionRationale(
-                this, Manifest.permission.ACCESS_COARSE_LOCATION
-            ) -> {
-                RequestLocationPermissionDialogFragment().show(
-                    supportFragmentManager,
-                    "LocationPermissionAlert"
-                )
-            }
+                ActivityCompat.shouldShowRequestPermissionRationale(
+                    this, Manifest.permission.ACCESS_COARSE_LOCATION
+                ) -> {
+                    RequestLocationPermissionDialogFragment().show(
+                        supportFragmentManager,
+                        "LocationPermissionAlert"
+                    )
+                }
 
-            else -> {
-                requestPermissions(
-                    arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION),
-                    LOCAL_PERMISSION_REQUEST_CODE
-                )
+                else -> {
+                    requestPermissions(
+                        arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION),
+                        LOCAL_PERMISSION_REQUEST_CODE
+                    )
+                }
             }
+        }
+
+        requestWeatherInfoWithPermission()
+
+        // Error buttons onClickListeners
+        taButton.setOnClickListener {
+            requestWeatherInfoWithPermission()
+        }
+        loadDefaultButton.setOnClickListener {
+            weatherMainScreenViewModel.getDefaultCityWeatherInfo()
         }
 
         // Observers
@@ -213,7 +229,13 @@ class WeatherMainActivity : AppCompatActivity(),
                         )
                         cityText.text = weatherMainScreenViewModel.locationData.value?.city
                         textHumidityValue.text = this.getString(R.string.current_humidity, it.humidity)
-                        weatherDescriptionText.text = it.weatherDescription
+                        // Set the weather description language by current locale
+                        val currentLocale = resources.configuration.locales.get(0)
+                        if (currentLocale.language == "ru" && currentLocale.country == "RU") {
+                            weatherDescriptionText.text = WeatherCondition.byCode(it.weatherId)?.description
+                        } else {
+                            weatherDescriptionText.text = it.weatherDescription
+                        }
                         // Checking the temperature unit and set text for the temperature
                         val temperatureUnit =
                             sharedPreferences.getString("temperature_unit", "Celsius")
@@ -298,7 +320,7 @@ class WeatherMainActivity : AppCompatActivity(),
                         val pressureUnit = sharedPreferences.getString("pressure_unit", "mmHg")
                         when (pressureUnit) {
                             "hPa" -> {
-                                pressureUnitCard.text = "hPa"
+                                pressureUnitCard.text = getString(R.string.pressure_unit_card_hpa)
                                 pressureValue.text =
                                     this.getString(
                                         R.string.current_pressure_hpa,
@@ -310,7 +332,7 @@ class WeatherMainActivity : AppCompatActivity(),
                             }
 
                             "mmHg" -> {
-                                pressureUnitCard.text = "mmHg"
+                                pressureUnitCard.text = getString(R.string.pressure_unit_card_mmHg)
                                 pressureValue.text =
                                     this.getString(
                                         R.string.current_pressure_mmHg,

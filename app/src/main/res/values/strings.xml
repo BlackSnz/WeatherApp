@@ -11,9 +11,11 @@
     <string name="current_temperature_fahrenheit">%1$s°F</string>
     <string name="weather_icon_description">Weather icon</string>
     <string name="current_humidity">%1$s%%</string>
-    <string name="current_wind">%1$s m/s</string>
+    <string name="current_wind_unit">m/s</string>
     <string name="current_pressure_hpa">%1$s</string>
     <string name="current_pressure_mmHg">%1$s</string>
+    <string name="pressure_unit_card_hpa">hPa</string>
+    <string name="pressure_unit_card_mmHg">mmHg</string>
     
     <!-- Hourly Forecast -->
     <string name="precipitation_in_percent">%1$s%%</string>
@@ -22,6 +24,14 @@
     <string name="preferences_measurement_system_category_title">Measurement System</string>
     <string name="preferences_measurement_system_temperature_unit">Temperature Unit</string>
     <string name="preferences_measurement_system_pressure_unit">Pressure Unit</string>
+    <string name="preference_summary_unit_for_pressure">Select the unit for pressure</string>
+    <string name="preference_unit_for_temperature">Select the unit for temperature</string>
+    <string name="hourly_forecast_card_header">Hourly forecast</string>
+    <string name="daily_forecast_card_header">Daily forecast for 4 days</string>
+    <string name="wind_information_card_header">Wind information</string>
+    <string name="humidity_card_header">Humidity</string>
+    <string name="pressure_card_header">Pressure</string>
+
 
     <!-- Settings string -->
     <!-- Массив единиц температуры -->

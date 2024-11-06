@@ -3,6 +3,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_scroll_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -147,8 +148,8 @@
             android:id="@+id/lottieAnimationView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="200dp"
             android:visibility="invisible"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -191,7 +192,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="10dp"
                     android:fontFamily="sans-serif-medium"
-                    android:text="Hourly forecast"
+                    android:text="@string/hourly_forecast_card_header"
                     android:textColor="?android:attr/textColorSecondary"
                     android:textSize="14sp"
                     app:layout_constraintBottom_toBottomOf="@id/ivHourlyForecastCardHeaderIcon"
@@ -248,7 +249,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="10dp"
                     android:fontFamily="sans-serif-medium"
-                    android:text="Daily forecast for 4 days"
+                    android:text="@string/daily_forecast_card_header"
                     android:textColor="?android:attr/textColorSecondary"
                     android:textSize="14sp"
                     app:layout_constraintBottom_toBottomOf="@id/ivDailyForecastCardHeaderIcon"
@@ -295,12 +296,13 @@
                     android:id="@+id/tvWindCardHeader"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
                     android:fontFamily="sans-serif-medium"
-                    android:text="Wind information"
+                    android:text="@string/wind_information_card_header"
                     android:textColor="?android:attr/textColorSecondary"
                     android:textSize="14sp"
                     app:layout_constraintBottom_toBottomOf="@id/cvWindHeaderIcon"
-                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/cvWindHeaderIcon"
                     app:layout_constraintTop_toTopOf="@id/cvWindHeaderIcon" />
 
                 <ImageView
@@ -330,7 +332,7 @@
                     android:layout_marginStart="5dp"
                     android:layout_marginBottom="8dp"
                     android:fontFamily="sans-serif"
-                    android:text="m/s"
+                    android:text="@string/current_wind_unit"
                     android:textColor="?android:attr/textColorSecondary"
                     android:textSize="14sp"
                     app:layout_constraintBottom_toBottomOf="@id/tvWindCardSpeedValue"
@@ -376,7 +378,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="10dp"
                     android:fontFamily="sans-serif-medium"
-                    android:text="Humidity"
+                    android:text="@string/humidity_card_header"
                     android:textColor="?android:attr/textColorSecondary"
                     android:textSize="14sp"
                     app:layout_constraintBottom_toBottomOf="@id/ivHumidityHeaderIcon"
@@ -433,7 +435,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="10dp"
                     android:fontFamily="sans-serif-medium"
-                    android:text="Pressure"
+                    android:text="@string/pressure_card_header"
                     android:textColor="?android:attr/textColorSecondary"
                     android:textSize="14sp"
                     app:layout_constraintBottom_toBottomOf="@id/ivPressureHeaderIcon"
@@ -475,41 +477,17 @@
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.cardview.widget.CardView>
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/clLoadingError"
+        <include
+            android:id="@+id/includedErrorLayout"
+            layout="@layout/loading_error"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:visibility="gone"
+            tools:visibility="visible"
+            android:layout_marginTop="260dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:layout_marginTop="300dp"
-            tools:visibility="visible">
-
-            <ImageView
-                android:id="@+id/ivWeatherLoadingError"
-                android:layout_width="200dp"
-                android:layout_height="200dp"
-                android:src="@drawable/weather_loading_error_icon"
-                app:layout_constraintBottom_toTopOf="@id/tvLoadingError"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <TextView
-                android:id="@+id/tvLoadingError"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="sans-serif"
-                android:gravity="center"
-                android:lines="2"
-                android:text="Can't get the information about your location. Try again."
-                android:textColor="?android:attr/textColorSecondary"
-                android:textSize="20sp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/ivWeatherLoadingError" />
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
+            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

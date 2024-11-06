@@ -1,7 +1,7 @@
 package com.example.weatherapp.data.weather
 
 import android.util.Log
-import com.example.weatherapp.data.weather.database.DailyWeatherData
+import com.example.weatherapp.data.weather.database.CurrentWeatherData
 import com.example.weatherapp.data.weather.database.HourlyForecastData
 import com.example.weatherapp.data.weather.responses.CurrentWeatherResponse
 import com.example.weatherapp.data.weather.responses.WeatherForecastResponse
@@ -16,7 +16,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 interface RemoteWeatherDataSource {
-    suspend fun fetchWeatherData(latitude: Double, longitude: Double): DailyWeatherData?
+    suspend fun fetchWeatherData(latitude: Double, longitude: Double): CurrentWeatherData?
     suspend fun fetchWeatherHourlyForecast(latitude: Double, longitude: Double): List<HourlyForecastData>?
 }
 
@@ -24,7 +24,7 @@ class RemoteWeatherDataSourceImpl @Inject constructor(
     private val weatherApiService: WeatherApiService
 ) : RemoteWeatherDataSource {
 
-    override suspend fun fetchWeatherData(latitude: Double, longitude: Double): DailyWeatherData? {
+    override suspend fun fetchWeatherData(latitude: Double, longitude: Double): CurrentWeatherData? {
         Log.d("LoadingDebug", "invoke getWeatherData in Repository")
         return suspendCancellableCoroutine { continuation ->
             val call = weatherApiService.getCurrentWeatherData(latitude, longitude)
@@ -38,8 +38,9 @@ class RemoteWeatherDataSourceImpl @Inject constructor(
                         continuation.resume(
                             response.body()?.let {
 
-                                DailyWeatherData(
+                                CurrentWeatherData(
                                     id = 0,
+                                    weatherId = it.weather[0].id,
                                     currentTemperature = it.main.temp,
                                     minTemperatureToday = it.main.temp_min,
                                     maxTemperatureToday = it.main.temp_max,

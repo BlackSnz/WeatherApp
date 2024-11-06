@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?><!-- Weather error loading block -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/clLoadingError"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:visibility="gone"
+    tools:visibility="visible">
+
+    <ImageView
+        android:id="@+id/ivWeatherLoadingError"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:src="@drawable/weather_loading_error_icon"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tvLoadingError"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif"
+        android:gravity="center"
+        android:lines="2"
+        android:padding="10dp"
+        android:text="Can't get the information about your location. Try again or load default city."
+        android:textColor="?android:attr/textColorSecondary"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ivWeatherLoadingError" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/button_try_again"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="50dp"
+        android:fontFamily="sans-serif-black"
+        android:text="Try again"
+        android:textColor="@color/black"
+        app:backgroundTint="?android:colorBackground"
+        app:layout_constraintEnd_toStartOf="@id/button_load_default"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvLoadingError"
+        app:strokeWidth="2dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/button_load_default"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-black"
+        android:text="Load default"
+        android:textColor="@color/black"
+        app:backgroundTint="?android:colorBackground"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/button_try_again"
+        app:layout_constraintTop_toTopOf="@id/button_try_again"
+        app:strokeWidth="2dp" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,13 +1,13 @@
 package com.example.weatherapp.data.weather
 
 import android.util.Log
-import com.example.weatherapp.data.weather.database.DailyWeatherData
+import com.example.weatherapp.data.weather.database.CurrentWeatherData
 import com.example.weatherapp.data.weather.database.HourlyForecastData
 import com.example.weatherapp.data.weather.database.WeatherDao
 import javax.inject.Inject
 
 interface WeatherRepository {
-    suspend fun getDailyWeatherData(latitude: Double, longitude: Double): DailyWeatherData?
+    suspend fun getCurrentWeatherData(latitude: Double, longitude: Double): CurrentWeatherData?
     suspend fun getHourlyWeatherForecastData(latitude: Double, longitude: Double): List<HourlyForecastData>?
 }
 
@@ -16,7 +16,7 @@ class WeatherRepositoryImpl @Inject constructor(
     private val remoteWeatherDataSource: RemoteWeatherDataSource
 ) : WeatherRepository {
 
-    override suspend fun getDailyWeatherData(latitude: Double, longitude: Double): DailyWeatherData? {
+    override suspend fun getCurrentWeatherData(latitude: Double, longitude: Double): CurrentWeatherData? {
         val localWeatherData = localWeatherDataSource.getDailyWeatherData()
         val currentTime = System.currentTimeMillis()
         return if (localWeatherData != null && currentTime - localWeatherData.lastUpdated < CACHE_EXPIRY_TIME) {

@@ -15,5 +15,7 @@ data class WeatherUiData(
     val windSpeed: String,
     val windDegrees: String,
     val windGust: String,
-    val pressure: String
+    val pressure: String,
+
+    val weatherId: Int,
 )

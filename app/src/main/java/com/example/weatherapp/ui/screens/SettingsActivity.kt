@@ -1,8 +1,10 @@
 package com.example.weatherapp.ui.screens
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+
 import com.example.weatherapp.R
 import com.example.weatherapp.databinding.SettingsActivityBinding
 import com.example.weatherapp.ui.fragments.WeatherSettingFragment
@@ -23,5 +25,8 @@ class SettingsActivity : AppCompatActivity() {
             .beginTransaction()
             .replace(R.id.settings_container, WeatherSettingFragment())
             .commit()
+
+        val settingsAppVersion = binding.tvSettingsAppVersion
+        settingsAppVersion.text = "Version: 1.0.0"
     }
 }

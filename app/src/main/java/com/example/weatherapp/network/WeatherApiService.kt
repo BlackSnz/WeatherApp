@@ -1,12 +1,13 @@
 package com.example.weatherapp.network
 
+import com.example.weatherapp.ApiKeys
 import com.example.weatherapp.data.weather.responses.CurrentWeatherResponse
 import com.example.weatherapp.data.weather.responses.WeatherForecastResponse
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Query
 
-private const val API_KEY = "1fac1074796fe012e2203d0cc101aca6"
+private const val API_KEY = ApiKeys.API_KEY
 
 interface WeatherApiService {
     @GET("data/2.5/weather")

@@ -6,18 +6,19 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.weatherapp.R
+import com.example.weatherapp.data.location.DefaultLocationInfo
 import com.example.weatherapp.data.location.LocationInfo
 import com.example.weatherapp.data.location.LocationRepository
 import com.example.weatherapp.data.location.LocationResult
 import com.example.weatherapp.data.weather.DailyForecastUnit
 import com.example.weatherapp.data.weather.HourlyForecastUnit
+import com.example.weatherapp.data.weather.WeatherCondition
 import com.example.weatherapp.data.weather.WeatherRepository
 import com.example.weatherapp.data.weather.WeatherUiData
 import com.example.weatherapp.utils.TimeUtils.unixToDayOfWeek
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -52,7 +53,7 @@ class WeatherMainScreenViewModel @Inject constructor(
     // Function for all async operation which fetch necessary information about the main weather parameters
     // First, load the information about the location, then use received information (latitude, longitude)
     // get weather data from the server.
-    fun getWeatherInformation() {
+    fun getWeatherInformation(callError: Boolean = false) {
         weatherLoadingJob?.cancel()
         weatherLoadingJob = viewModelScope.launch() {
             Log.d("LoadingDebug", "==== Now in getWeatherInformation in VM ====")
@@ -83,7 +84,8 @@ class WeatherMainScreenViewModel @Inject constructor(
                             _weatherDataUiState.value = WeatherDataUiState.Success(weatherData)
 
                         } else {
-                            _weatherDataUiState.value = WeatherDataUiState.Error("Can't get weather data")
+                            _weatherDataUiState.value =
+                                WeatherDataUiState.Error("Can't get weather data")
                         }
                     }
                 }
@@ -91,12 +93,13 @@ class WeatherMainScreenViewModel @Inject constructor(
                 Log.d("CancelLoading", "Cancellation weatherLoading Job")
             }
         }
+
     }
 
     // Transform data from the repository to the ui layer data
     private suspend fun getWeatherData(latitude: Double, longitude: Double): WeatherUiData? {
         Log.d("LoadingDebug", "invoke getWeatherData in VM")
-        val weatherData = weatherRepository.getDailyWeatherData(latitude, longitude)
+        val weatherData = weatherRepository.getCurrentWeatherData(latitude, longitude)
         Log.d("LoadingDebug", "Get weather data from repository. Result: ${weatherRepository}")
         val weatherUiData = CompletableDeferred<WeatherUiData?>()
         if (weatherData != null) {
@@ -113,7 +116,8 @@ class WeatherMainScreenViewModel @Inject constructor(
                     pressure = weatherData.pressure.toString(),
                     windDegrees = weatherData.windDegrees.toString(),
                     windGust = weatherData.windGust.toString(),
-                    iconCode = weatherData.iconCode
+                    iconCode = weatherData.iconCode,
+                    weatherId = weatherData.weatherId
                 )
             )
         } else {
@@ -158,7 +162,7 @@ class WeatherMainScreenViewModel @Inject constructor(
                 val dailyForecastUnit = DailyForecastUnit(
                     maxTemperature = maxTemperature.toString(),
                     minTemperature = minTemperature.toString(),
-                    iconCode = oneDayForecastList[0].iconCode,
+                    iconCode = oneDayForecastList[3].iconCode,
                     precipitation = maxPrecipitation.toString(),
                     dayOfWeek = unixToDayOfWeek(oneDayForecastList[0].time)
                 )
@@ -174,6 +178,28 @@ class WeatherMainScreenViewModel @Inject constructor(
             pairOfForecastUnits.complete(null)
         }
         return pairOfForecastUnits.await()
+    }
+
+    fun getDefaultCityWeatherInfo() {
+        viewModelScope.launch {
+            val defaultCity = DefaultLocationInfo
+            val weatherData = getWeatherData(
+                defaultCity.latitude, defaultCity.longitude
+            )
+            val forecastData = getHourlyForecastData(
+                defaultCity.latitude, defaultCity.longitude
+            )
+
+            if (weatherData != null) {
+                Log.d("LoadingDebug", "Change weatherDataUiState to Success")
+                _weatherHourlyData.value = forecastData?.first
+                _weatherDailyForecast.value = forecastData?.second
+                _weatherDataUiState.value = WeatherDataUiState.Success(weatherData)
+
+            } else {
+                _weatherDataUiState.value = WeatherDataUiState.Error("Can't get weather data")
+            }
+        }
     }
 
     fun setDirectionIcon(currentDirection: String): Int {

@@ -14,8 +14,8 @@
             android:entries="@array/temperature_units"
             android:entryValues="@array/temperature_values"
             android:key="temperature_unit"
-            android:summary="Select the unit for temperature"
-            android:title="Temperature Unit"
+            android:summary="@string/preference_unit_for_temperature"
+            android:title="@string/preferences_measurement_system_temperature_unit"
             app:useSimpleSummaryProvider="true" />
 
         <!-- Настройка выбора единицы давления -->
@@ -25,8 +25,8 @@
             android:entries="@array/pressure_units"
             android:entryValues="@array/pressure_values"
             android:key="pressure_unit"
-            android:summary="Select the unit for pressure"
-            android:title="Pressure Unit"
+            android:summary="@string/preference_summary_unit_for_pressure"
+            android:title="@string/preferences_measurement_system_pressure_unit"
             app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 </PreferenceScreen>
