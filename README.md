@@ -13,5 +13,9 @@
 <p></p>
 <p>Source of weather data is <a href="https://openweathermap.org/api">OpenWeather API</a>. But the app architecture allows you to ease change source of data.</p>
 <p>To get the correct application work, you need to insert your OpenWeather API key into the <b>network/Weather API Service</b>.</p>
+<h2>App icons</h2>
+<p>Created with <a href="https://www.recraft.ai">Recraft</a></p>
+<img src="https://i.imgur.com/pV8Ou3N.png" alt="app-icon" width="159" height="150"/>
+<p>Weather direction icon by <a href="https://www.flaticon.com/authors/andinur">Andinur</a></p>
 <h2>Project Screenshots:</h2>
-<img src="https://i.imgur.com/HIZ0thj.png" alt="project-screenshot" width="225" height="500/">
+<img src="https://i.imgur.com/HIZ0thj.png" alt="project-screenshot" width="225" height="500"/>
